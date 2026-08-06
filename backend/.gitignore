@@ -1,0 +1,38 @@
+############################
+# OS
+############################
+.DS_Store
+Thumbs.db
+
+############################
+# Node.js
+############################
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+############################
+# Strapi
+############################
+.tmp
+.cache
+.strapi/client
+.strapi-updater.json
+build
+dist
+types/generated
+exports
+
+############################
+# Uploaded media (served from Strapi, not part of the app source)
+############################
+public/uploads/*
+!public/uploads/.gitkeep
+
+############################
+# Env files (keep .env.example)
+############################
+.env
+.env.local
+.env.*.local

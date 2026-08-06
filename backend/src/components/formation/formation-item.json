@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_formation_formation_items",
+  "info": {
+    "displayName": "Formation Item",
+    "icon": "book"
+  },
+  "options": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+node_modules
+dist
+.tmp
+.strapi/client
+.cache
+.git
+*.log

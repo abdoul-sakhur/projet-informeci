@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "domaines",
+  "info": {
+    "singularName": "domaine",
+    "pluralName": "domaines",
+    "displayName": "Domaine",
+    "description": "Domaines d'intervention rattachés à un pôle"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nom",
+      "required": true
+    },
+    "pole": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::service-pole.service-pole",
+      "inversedBy": "domaines"
+    },
+    "categorie": {
+      "type": "string"
+    },
+    "description_courte": {
+      "type": "text"
+    }
+  }
+}

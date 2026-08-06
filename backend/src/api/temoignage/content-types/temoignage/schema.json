@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "temoignages",
+  "info": {
+    "singularName": "temoignage",
+    "pluralName": "temoignages",
+    "displayName": "Témoignage",
+    "description": "Témoignages clients"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "auteur": {
+      "type": "string",
+      "required": true
+    },
+    "fonction": {
+      "type": "string"
+    },
+    "structure": {
+      "type": "string"
+    },
+    "contenu": {
+      "type": "text",
+      "required": true
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

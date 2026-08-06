@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_shared_telephones",
+  "info": {
+    "displayName": "Telephone",
+    "icon": "phone"
+  },
+  "options": {},
+  "attributes": {
+    "numero": {
+      "type": "string",
+      "required": true
+    },
+    "label": {
+      "type": "string"
+    }
+  }
+}

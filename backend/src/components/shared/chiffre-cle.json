@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_shared_chiffre_cles",
+  "info": {
+    "displayName": "Chiffre Cle",
+    "icon": "hashtag"
+  },
+  "options": {},
+  "attributes": {
+    "valeur": {
+      "type": "integer",
+      "required": true
+    },
+    "suffixe": {
+      "type": "string"
+    },
+    "libelle": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

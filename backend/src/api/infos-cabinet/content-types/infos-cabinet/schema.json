@@ -1,0 +1,53 @@
+{
+  "kind": "singleType",
+  "collectionName": "infos_cabinet",
+  "info": {
+    "singularName": "infos-cabinet",
+    "pluralName": "infos-cabinets",
+    "displayName": "Infos cabinet",
+    "description": "Coordonnées et informations générales du cabinet"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "photo_bureaux": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "raison_sociale": {
+      "type": "string"
+    },
+    "siege": {
+      "type": "string"
+    },
+    "adresse_postale": {
+      "type": "string"
+    },
+    "telephones": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.telephone"
+    },
+    "email": {
+      "type": "email"
+    },
+    "site_web": {
+      "type": "string"
+    },
+    "horaires": {
+      "type": "text"
+    }
+  }
+}

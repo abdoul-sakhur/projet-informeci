@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "salles",
+  "info": {
+    "singularName": "salle",
+    "pluralName": "salles",
+    "displayName": "Salle de formation",
+    "description": "Salles disponibles à la location"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true
+    },
+    "capacite": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "ordre": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

@@ -1,0 +1,12 @@
+# Editor / local tooling settings (machine-specific, not part of the app)
+.claude/
+.vscode/
+.idea/
+
+# Raw source photos handed off during development — already uploaded into
+# Strapi's media library (backend/public/uploads), not part of the app itself.
+image-informeci/
+
+# OS
+.DS_Store
+Thumbs.db

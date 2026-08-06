@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reference_projets",
+  "info": {
+    "singularName": "reference-projet",
+    "pluralName": "reference-projets",
+    "displayName": "Référence projet",
+    "description": "Projets et références réalisés"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "client": {
+      "type": "string"
+    },
+    "annee": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "text"
+    },
+    "pole": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::service-pole.service-pole",
+      "inversedBy": "reference_projets"
+    }
+  }
+}

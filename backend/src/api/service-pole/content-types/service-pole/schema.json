@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "service_poles",
+  "info": {
+    "singularName": "service-pole",
+    "pluralName": "service-poles",
+    "displayName": "Pôle de service",
+    "description": "Les 3 pôles d'activité d'INTERFORMCI"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "titre",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "icone": {
+      "type": "string"
+    },
+    "ordre": {
+      "type": "integer",
+      "default": 0
+    },
+    "domaines": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::domaine.domaine",
+      "mappedBy": "pole"
+    },
+    "reference_projets": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::reference-projet.reference-projet",
+      "mappedBy": "pole"
+    }
+  }
+}

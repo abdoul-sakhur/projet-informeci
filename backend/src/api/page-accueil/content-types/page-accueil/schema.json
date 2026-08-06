@@ -1,0 +1,41 @@
+{
+  "kind": "singleType",
+  "collectionName": "page_accueil",
+  "info": {
+    "singularName": "page-accueil",
+    "pluralName": "page-accueils",
+    "displayName": "Page d'accueil",
+    "description": "Contenu configurable de la page d'accueil"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero_titre": {
+      "type": "string"
+    },
+    "hero_sous_titre": {
+      "type": "text"
+    },
+    "hero_background": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "chiffres_cles": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.chiffre-cle"
+    },
+    "photo_equipe": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

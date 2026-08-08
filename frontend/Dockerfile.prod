@@ -1,0 +1,41 @@
+# Production image for the Next.js frontend, using the "standalone" output
+# (only the files actually needed to run the server are copied — no
+# node_modules tree, no source, no devDependencies in the final image).
+#
+# NEXT_PUBLIC_* variables are inlined into the client JS bundle at build time,
+# so the real public Strapi URL must be passed as a build arg, not just a
+# runtime env var (unlike STRAPI_INTERNAL_URL, which is only read server-side
+# at request time and can stay a normal runtime env var).
+
+FROM node:20-bookworm-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+
+FROM node:20-bookworm-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ARG NEXT_PUBLIC_STRAPI_URL
+ENV NEXT_PUBLIC_STRAPI_URL=${NEXT_PUBLIC_STRAPI_URL}
+ENV NODE_ENV=production
+
+RUN npm run build
+
+# ---- runtime ----
+FROM node:20-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+RUN groupadd -r nextjs && useradd -r -g nextjs -m nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
+
+USER nextjs
+EXPOSE 3000
+CMD ["node", "server.js"]

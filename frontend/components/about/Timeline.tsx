@@ -27,7 +27,7 @@ const ENTRIES: TimelineEntry[] = [
     annee: "Aujourd'hui",
     titre: 'Un cabinet de référence',
     description:
-      "Plus de 25 ans d'expérience, 6 agréments et partenariats, et un catalogue de plus de 40 domaines de formation.",
+      "Plus de 28 ans d'expérience, 6 agréments et partenariats, et un catalogue de plus de 40 domaines de formation.",
   },
 ];
 

@@ -23,6 +23,9 @@
     "telephone": {
       "type": "string"
     },
+    "structure": {
+      "type": "string"
+    },
     "sujet": {
       "type": "string"
     },

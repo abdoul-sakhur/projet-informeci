@@ -9,8 +9,10 @@ const ROUTES = [
   '/services/etudes-et-projets',
   '/services/formation-continue',
   '/services/location-de-salles',
+  '/services/interim',
   '/references',
   '/contact',
+  '/devis',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

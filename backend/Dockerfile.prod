@@ -1,0 +1,37 @@
+# Production image for the Strapi backend.
+# Multi-stage: compile TS + build the admin panel in `build`, then ship only the
+# compiled output and production dependencies in `runtime` — no source, no
+# devDependencies, no build tooling in the final image.
+
+FROM node:20-bookworm-slim AS build
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# ---- runtime ----
+FROM node:20-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN groupadd -r strapi && useradd -r -g strapi -m strapi
+
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev && npm cache clean --force
+
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/public ./public
+COPY --from=build /app/seed-assets ./seed-assets
+COPY --from=build /app/favicon.png ./favicon.png
+
+# .tmp (sqlite db) and public/uploads must be writable and, in real
+# deployments, mounted as persistent volumes — see docker-compose.prod.yml.
+RUN mkdir -p .tmp public/uploads && chown -R strapi:strapi /app
+
+USER strapi
+EXPOSE 1337
+CMD ["npm", "run", "start"]

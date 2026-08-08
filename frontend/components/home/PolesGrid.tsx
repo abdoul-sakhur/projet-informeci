@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import { ArrowRight, Building2, GraduationCap, LineChart, type LucideIcon } from 'lucide-react';
+import {
+  ArrowRight,
+  Briefcase,
+  Building2,
+  GraduationCap,
+  LineChart,
+  type LucideIcon,
+} from 'lucide-react';
 import Card from '@/components/ui/Card';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
@@ -9,12 +16,14 @@ const ICONS: Record<string, LucideIcon> = {
   'line-chart': LineChart,
   'graduation-cap': GraduationCap,
   'building-2': Building2,
+  briefcase: Briefcase,
 };
 
 const SLUGS: Record<number, string> = {
   1: '/services/etudes-et-projets',
   2: '/services/formation-continue',
   3: '/services/location-de-salles',
+  4: '/services/interim',
 };
 
 interface PolesGridProps {
@@ -27,12 +36,12 @@ export default function PolesGrid({ poles }: PolesGridProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionTitle
           eyebrow="Nos pôles d'activité"
-          title="Trois pôles, une seule exigence : la qualité"
+          title="Une seule exigence : la qualité"
           align="center"
-          description="Études & accompagnement de projets, formation professionnelle continue et location de salles équipées."
+          description="Études & accompagnement de projets, formation professionnelle continue, location de salles équipées et mise à disposition de personnel."
         />
 
-        <StaggerGrid className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerGrid className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {poles.map((pole) => {
             const Icon = ICONS[pole.icone] ?? LineChart;
             const href = SLUGS[pole.ordre] ?? '/services';

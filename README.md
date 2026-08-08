@@ -92,6 +92,13 @@ npm run dev
 Le site est accessible sur [http://localhost:3000](http://localhost:3000) (ou le premier port
 disponible si 3000 est occupé).
 
+## Déploiement en production (VPS)
+
+`docker-compose.yml` (à la racine) est pour le développement local uniquement — volumes montés
+sur le code source, hot-reload, commandes `dev`/`develop`. Pour un déploiement réel sur VPS
+(images de production, HTTPS automatique via Caddy, sauvegardes...), suis le guide dédié :
+**[DEPLOIEMENT.md](./DEPLOIEMENT.md)**.
+
 ## Logo
 
 Le logo officiel INTERFORMCI se trouve à `frontend/public/logo.png` (header et footer le

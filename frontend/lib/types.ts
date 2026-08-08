@@ -48,6 +48,7 @@ export interface ReferenceProjet {
   client: string | null;
   annee: number | null;
   description: string | null;
+  attestation: StrapiMedia | null;
 }
 
 export interface Partenaire {
@@ -133,6 +134,11 @@ export interface InfosCabinet {
   email: string;
   site_web: string;
   horaires: string;
+  registre_commerce: string | null;
+  direction_nom: string | null;
+  direction_titre: string | null;
+  direction_photo: StrapiMedia | null;
+  direction_message: string | null;
 }
 
 export interface StrapiListResponse<T> {

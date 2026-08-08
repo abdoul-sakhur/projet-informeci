@@ -15,6 +15,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import Card from '@/components/ui/Card';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
 import AutresPoles from '@/components/services/AutresPoles';
+import Button from '@/components/ui/Button';
 import { getSalles, getStrapiImageURL } from '@/lib/strapi';
 import { buildBreadcrumbJsonLd, buildServiceJsonLd } from '@/lib/jsonld';
 
@@ -117,6 +118,20 @@ export default async function LocationDeSallesPage() {
           </StaggerGrid>
         </div>
       </section>
+
+      <AnimatedSection className="bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="font-serif text-2xl font-bold text-primary-dark">
+            Une salle disponible pour votre événement ?
+          </h2>
+          <p className="mt-3 text-text/75">
+            Indiquez-nous vos dates et vos besoins, nous vous répondons avec un devis rapide.
+          </p>
+          <div className="mt-6">
+            <Button href="/devis">Demander un devis</Button>
+          </div>
+        </div>
+      </AnimatedSection>
 
       <AutresPoles current="/services/location-de-salles" />
     </>

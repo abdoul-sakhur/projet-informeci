@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { Award, Briefcase } from 'lucide-react';
+import { Award } from 'lucide-react';
 import PageHeader from '@/components/layout/PageHeader';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Card from '@/components/ui/Card';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
+import ReferencesGrid from '@/components/references/ReferencesGrid';
 import { getPartenaireLogo } from '@/lib/partenaireLogos';
 import { getPartenaires, getReferenceProjets, getStrapiImageURL } from '@/lib/strapi';
 
@@ -85,29 +86,7 @@ export default async function ReferencesPage() {
             align="center"
           />
 
-          <StaggerGrid className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {references.map((ref) => (
-              <StaggerItem key={ref.id}>
-                <Card className="h-full">
-                  <div className="flex items-center justify-between">
-                    <Briefcase className="h-7 w-7 text-secondary" aria-hidden="true" />
-                    {ref.annee && (
-                      <span className="rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold text-secondary">
-                        {ref.annee}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="mt-4 font-serif text-base font-bold text-primary-dark">
-                    {ref.titre}
-                  </h3>
-                  {ref.client && <p className="mt-2 text-sm font-medium text-text/60">{ref.client}</p>}
-                  {ref.description && (
-                    <p className="mt-3 text-sm leading-relaxed text-text/75">{ref.description}</p>
-                  )}
-                </Card>
-              </StaggerItem>
-            ))}
-          </StaggerGrid>
+          <ReferencesGrid references={references} />
         </div>
       </section>
     </>

@@ -62,7 +62,7 @@ export async function getTemoignages(): Promise<Temoignage[]> {
 
 export async function getReferenceProjets(): Promise<ReferenceProjet[]> {
   const res = await fetchAPI<StrapiListResponse<ReferenceProjet>>(
-    '/reference-projets?pagination[pageSize]=100'
+    '/reference-projets?populate=*&pagination[pageSize]=100'
   );
   return res?.data ?? [];
 }
@@ -133,6 +133,7 @@ export interface ContactMessagePayload {
   nom: string;
   email: string;
   telephone?: string;
+  structure?: string;
   sujet?: string;
   message: string;
 }

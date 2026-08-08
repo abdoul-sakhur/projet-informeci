@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import { getInfosCabinet, getStrapiMediaURL } from '@/lib/strapi';
 import { buildOrganizationJsonLd } from '@/lib/jsonld';
 import './globals.css';
@@ -41,6 +42,8 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const logoUrl = getStrapiMediaURL(infos?.logo?.url);
   const logoWidth = infos?.logo?.width ?? undefined;
   const logoHeight = infos?.logo?.height ?? undefined;
+  const mobile =
+    infos?.telephones?.find((t) => t.label === 'Mobile') ?? infos?.telephones?.[0];
 
   return (
     <html lang="fr" className={`${playfair.variable} ${jakarta.variable} h-full antialiased`}>
@@ -52,6 +55,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
         <Header logoUrl={logoUrl} logoWidth={logoWidth} logoHeight={logoHeight} />
         <main className="flex-1">{children}</main>
         <Footer />
+        {mobile && <WhatsAppButton numero={mobile.numero} />}
       </body>
     </html>
   );

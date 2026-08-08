@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import type { Core } from '@strapi/strapi';
 
 function slugify(value: string): string {
@@ -383,7 +385,7 @@ async function seedMainContent(strapi: Core.Strapi) {
       hero_sous_titre:
         "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.",
       chiffres_cles: [
-        { valeur: 25, suffixe: '+', libelle: "ans d'expérience" },
+        { valeur: 28, suffixe: '+', libelle: "ans d'expérience" },
         { valeur: 6, suffixe: '', libelle: 'agréments & partenariats' },
         { valeur: 2, suffixe: '', libelle: 'salles de formation' },
         { valeur: 40, suffixe: '+', libelle: 'domaines de formation' },
@@ -403,10 +405,164 @@ async function seedMainContent(strapi: Core.Strapi) {
       email: 'cabinterformci@gmail.com',
       site_web: 'www.interformci.com',
       horaires: 'Lundi - Vendredi : 8h00 - 17h30',
+      registre_commerce: 'RCCM à renseigner',
     },
   });
 
   strapi.log.info('[seed] Contenu principal inséré.');
+}
+
+// One-off correction: the site launched with "25 ans d'expérience"; the real
+// figure (1998 → today) is 28. Existing installs already have this component
+// seeded, so the create-time default above won't reach them — patch in place.
+async function patchExperienceStat(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['chiffres_cles'],
+  });
+  if (!page?.chiffres_cles) return;
+
+  const stat = page.chiffres_cles.find((c: any) => c.libelle === "ans d'expérience");
+  if (!stat || stat.valeur === 28) return;
+
+  const chiffres_cles = page.chiffres_cles.map((c: any) =>
+    c.libelle === "ans d'expérience" ? { ...c, valeur: 28 } : c
+  );
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data: { chiffres_cles },
+  });
+
+  strapi.log.info('[seed] Statistique "ans d’expérience" corrigée à 28.');
+}
+
+const INTERIM_TITRE = 'Intérim & mise à disposition de personnel';
+
+async function seedInterimPole(strapi: Core.Strapi) {
+  const existing = await strapi.documents('api::service-pole.service-pole').findFirst({
+    filters: { titre: INTERIM_TITRE },
+  });
+  if (existing) return;
+
+  await strapi.documents('api::service-pole.service-pole').create({
+    data: {
+      titre: INTERIM_TITRE,
+      slug: slugify(INTERIM_TITRE),
+      description:
+        "Mise à disposition de personnel qualifié pour le compte d'entreprises clientes, dans le cadre d'une prestation de sous-traitance.",
+      icone: 'briefcase',
+      ordre: 4,
+    },
+  });
+
+  strapi.log.info('[seed] Pôle Intérim créé.');
+}
+
+const SAEPP_NOM = 'SAEPP — Société Africaine d’Entreposage de Produits Pétroliers';
+
+async function seedExtraPartenaires(strapi: Core.Strapi) {
+  const existing = await strapi.documents('api::partenaire.partenaire').findFirst({
+    filters: { nom: SAEPP_NOM },
+  });
+  if (existing) return;
+
+  await strapi.documents('api::partenaire.partenaire').create({
+    data: {
+      nom: SAEPP_NOM,
+      numero_agrement: '',
+      description: 'Partenariat avec la SAEPP.',
+    },
+  });
+
+  strapi.log.info('[seed] Partenaire SAEPP ajouté.');
+}
+
+async function patchRegistreCommerce(strapi: Core.Strapi) {
+  const [infos] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
+  if (!infos || infos.registre_commerce) return;
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data: { registre_commerce: 'RCCM à renseigner' },
+  });
+
+  strapi.log.info('[seed] Registre de commerce (placeholder) ajouté.');
+}
+
+async function seedPhotoBureaux(strapi: Core.Strapi) {
+  const [infos] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
+    populate: ['photo_bureaux'],
+  });
+  if (!infos || infos.photo_bureaux) return;
+
+  const filepath = path.join(__dirname, '..', '..', 'seed-assets', 'photo-bureaux.jpeg');
+  if (!fs.existsSync(filepath)) return;
+
+  const { size } = fs.statSync(filepath);
+  const [uploaded] = await strapi.plugin('upload').service('upload').upload({
+    data: {},
+    files: {
+      filepath,
+      originalFilename: 'photo-bureaux.jpeg',
+      mimetype: 'image/jpeg',
+      size,
+    },
+  });
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data: { photo_bureaux: uploaded.id },
+  });
+
+  strapi.log.info('[seed] Photo façade/bureaux importée.');
+}
+
+// Nom fictif en attendant le nom réel de la gérante-associée à fournir par le client.
+const DIRECTION_MESSAGE = `Faisant nôtre l'aphorisme du philosophe du 16è siècle, Jean BODIN qui écrivait : « Il n'est de richesse que d'hommes... », le cabinet INTERFORMCI a été porté sur les fonts baptismaux, il y a plus de vingt cinq (25) ans, avec pour vision, d'accompagner les partenaires qui nous feraient confiance, dans leur quête quotidienne de performance.
+
+A l'évidence, le pari de la croissance économique et financière, tout comme celui de la pérennité d'une exploitation ou d'un projet ne sauraient de notre avis, être gagnés qu'en s'appuyant sur des ressources humaines avec des compétences avérées, diversifiées et actualisées, mais surtout utiles dans l'environnement dans lequel lesdites compétences doivent être déployées.
+
+Cela est d'autant plus vrai qu'en ce 21è siècle, des métiers se modernisent, d'autres disparaissent, d'autres encore se créent. Qu'il s'agisse de formation initiale, d'adaptation, de reconversion, voire de renforcement des capacités, le champ du savoir n'est jamais clos. Les ressources humaines doivent dans leurs évolutions respectives, être dotées de moyens tant théoriques que pratiques pour répondre à des attentes multiformes et changeantes.
+
+Conscient de cette situation, INTERFORMCI met son expertise et son expérience au service des communautés, des entreprises et de l'administration publique, en vue de les accompagner dans les défis de leur performance globale qui passe nécessairement par le rehaussement continuel des aptitudes et habiletés de leurs ressources humaines respectives.
+
+Ainsi prend tout son sens, notre slogan qui est celui de « La performance par la formation ».
+
+Faites de nous votre partenaire et nous accompagnerons votre performance !`;
+
+async function seedDirection(strapi: Core.Strapi) {
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
+    populate: ['direction_photo'],
+  });
+  if (!infos || infos.direction_nom) return;
+
+  const data: Record<string, unknown> = {
+    direction_nom: 'KOFFI Marie-Ange',
+    direction_titre: 'Gérante-Associée',
+    direction_message: DIRECTION_MESSAGE,
+  };
+
+  const filepath = path.join(__dirname, '..', '..', 'seed-assets', 'direction.jpeg');
+  if (fs.existsSync(filepath)) {
+    const { size } = fs.statSync(filepath);
+    const [uploaded] = await strapi.plugin('upload').service('upload').upload({
+      data: {},
+      files: {
+        filepath,
+        originalFilename: 'direction.jpeg',
+        mimetype: 'image/jpeg',
+        size,
+      },
+    });
+    data.direction_photo = uploaded.id;
+  }
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data,
+  });
+
+  strapi.log.info('[seed] Mot de la direction importé (nom fictif — à remplacer via l’admin).');
 }
 
 async function seedSalles(strapi: Core.Strapi) {
@@ -439,4 +595,10 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedMainContent(strapi);
   await seedSalles(strapi);
   await seedExperts(strapi);
+  await patchExperienceStat(strapi);
+  await seedInterimPole(strapi);
+  await seedExtraPartenaires(strapi);
+  await patchRegistreCommerce(strapi);
+  await seedPhotoBureaux(strapi);
+  await seedDirection(strapi);
 }

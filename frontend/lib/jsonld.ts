@@ -1,10 +1,7 @@
 import type { InfosCabinet } from './types';
+import { toE164 } from './phone';
 
 const SITE_URL = 'https://www.interformci.com';
-
-function toE164(numero: string): string {
-  return `+${numero.replace(/\D/g, '')}`;
-}
 
 export function buildOrganizationJsonLd(infos: InfosCabinet | null) {
   return {

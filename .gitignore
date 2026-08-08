@@ -10,3 +10,7 @@ image-informeci/
 # OS
 .DS_Store
 Thumbs.db
+
+# Production secrets (filled-in versions of the .example templates)
+.env.prod
+backend/.env.production

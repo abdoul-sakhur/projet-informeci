@@ -1,0 +1,9 @@
+{$DOMAIN} {
+	reverse_proxy frontend:3000
+	encode gzip zstd
+}
+
+{$API_DOMAIN} {
+	reverse_proxy backend:1337
+	encode gzip zstd
+}

@@ -17,9 +17,11 @@ const NAV_LINKS = [
       { href: '/services/etudes-et-projets', label: 'Études & projets' },
       { href: '/services/formation-continue', label: 'Formation continue' },
       { href: '/services/location-de-salles', label: 'Location de salles' },
+      { href: '/services/interim', label: 'Intérim & personnel' },
     ],
   },
   { href: '/references', label: 'Références' },
+  { href: '/devis', label: 'Demande de devis' },
 ];
 
 interface HeaderProps {

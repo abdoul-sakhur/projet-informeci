@@ -96,9 +96,12 @@ export default async function Footer() {
       </div>
 
       <div className="border-t border-white/10 py-6">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-xs text-white/60 sm:flex-row sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-center text-xs text-white/60 sm:flex-row sm:text-left sm:px-6 lg:px-8">
           <p>&copy; {new Date().getFullYear()} INTERFORMCI. Tous droits réservés.</p>
-          <p>SARL — Abidjan, Côte d&apos;Ivoire</p>
+          <p>
+            SARL — Abidjan, Côte d&apos;Ivoire
+            {infos?.registre_commerce && <> — {infos.registre_commerce}</>}
+          </p>
         </div>
       </div>
     </footer>

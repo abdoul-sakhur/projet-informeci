@@ -6,7 +6,7 @@ import { getServicePoles } from '@/lib/strapi';
 export const metadata: Metadata = {
   title: 'Nos services à Abidjan',
   description:
-    "Découvrez les trois pôles d'activité d'INTERFORMCI : études et projets de développement, formation professionnelle continue et location de salles.",
+    "Découvrez les pôles d'activité d'INTERFORMCI : études et projets de développement, formation professionnelle continue, location de salles et mise à disposition de personnel.",
   alternates: { canonical: '/services' },
 };
 
@@ -17,8 +17,8 @@ export default async function ServicesPage() {
     <>
       <PageHeader
         eyebrow="Nos services"
-        title="Trois pôles d'expertise à votre service"
-        description="Études & accompagnement de projets, formation professionnelle continue et location de salles équipées."
+        title="Des pôles d'expertise à votre service"
+        description="Études & accompagnement de projets, formation professionnelle continue, location de salles équipées et intérim."
       />
       <PolesGrid poles={poles} />
     </>

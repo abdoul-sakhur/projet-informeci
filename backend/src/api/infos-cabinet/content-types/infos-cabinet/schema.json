@@ -48,6 +48,25 @@
     },
     "horaires": {
       "type": "text"
+    },
+    "registre_commerce": {
+      "type": "string"
+    },
+    "direction_nom": {
+      "type": "string"
+    },
+    "direction_titre": {
+      "type": "string"
+    },
+    "direction_photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "direction_message": {
+      "type": "text"
     }
   }
 }

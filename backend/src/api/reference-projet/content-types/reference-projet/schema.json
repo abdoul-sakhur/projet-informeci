@@ -30,6 +30,13 @@
       "relation": "manyToOne",
       "target": "api::service-pole.service-pole",
       "inversedBy": "reference_projets"
+    },
+    "attestation": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 }

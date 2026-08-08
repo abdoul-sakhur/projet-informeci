@@ -6,7 +6,15 @@ import { submitContactMessage } from '@/lib/strapi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-export default function ContactForm() {
+const SERVICES = [
+  'Études & projets de développement',
+  'Formation continue',
+  'Location de salles',
+  'Intérim & mise à disposition de personnel',
+  'Autre',
+];
+
+export default function DevisForm() {
   const [status, setStatus] = useState<Status>('idle');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -15,13 +23,14 @@ export default function ContactForm() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const service = String(formData.get('service') ?? '');
 
     const { ok } = await submitContactMessage({
       nom: String(formData.get('nom') ?? ''),
       email: String(formData.get('email') ?? ''),
       telephone: String(formData.get('telephone') ?? ''),
       structure: String(formData.get('structure') ?? ''),
-      sujet: String(formData.get('sujet') ?? ''),
+      sujet: `Demande de devis — ${service}`,
       message: String(formData.get('message') ?? ''),
     });
 
@@ -49,6 +58,20 @@ export default function ContactForm() {
           />
         </div>
         <div>
+          <label htmlFor="structure" className="mb-1.5 block text-sm font-semibold text-primary-dark">
+            Société / Structure <span className="font-normal text-text/50">(facultatif)</span>
+          </label>
+          <input
+            id="structure"
+            name="structure"
+            type="text"
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
           <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-primary-dark">
             Email
           </label>
@@ -60,9 +83,6 @@ export default function ContactForm() {
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="telephone" className="mb-1.5 block text-sm font-semibold text-primary-dark">
             Téléphone
@@ -74,34 +94,33 @@ export default function ContactForm() {
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
-        <div>
-          <label htmlFor="structure" className="mb-1.5 block text-sm font-semibold text-primary-dark">
-            Structure <span className="font-normal text-text/50">(facultatif)</span>
-          </label>
-          <input
-            id="structure"
-            name="structure"
-            type="text"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
       </div>
 
       <div>
-        <label htmlFor="sujet" className="mb-1.5 block text-sm font-semibold text-primary-dark">
-          Sujet
+        <label htmlFor="service" className="mb-1.5 block text-sm font-semibold text-primary-dark">
+          Service concerné
         </label>
-        <input
-          id="sujet"
-          name="sujet"
-          type="text"
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
+        <select
+          id="service"
+          name="service"
+          required
+          defaultValue=""
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        >
+          <option value="" disabled>
+            Sélectionnez un service
+          </option>
+          {SERVICES.map((service) => (
+            <option key={service} value={service}>
+              {service}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
         <label htmlFor="message" className="mb-1.5 block text-sm font-semibold text-primary-dark">
-          Message
+          Décrivez votre besoin
         </label>
         <textarea
           id="message"
@@ -122,13 +141,13 @@ export default function ContactForm() {
         ) : (
           <Send className="h-4 w-4" aria-hidden="true" />
         )}
-        Envoyer le message
+        Envoyer la demande de devis
       </button>
 
       {status === 'success' && (
         <p className="flex items-center gap-2 text-sm font-medium text-secondary" role="status">
           <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-          Votre message a bien été envoyé. Nous vous répondrons rapidement.
+          Votre demande a bien été envoyée. Nous vous répondrons rapidement.
         </p>
       )}
       {status === 'error' && (

@@ -11,7 +11,11 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY . .
-RUN npm run build
+# types/generated is derived from the content-type schemas and gitignored (it's
+# regenerated continuously by `strapi develop` in local dev, which is why it's
+# present on a dev machine but absent on a fresh clone) — `strapi build` type-checks
+# against it, so it must be (re)generated here before compiling.
+RUN npx strapi ts:generate-types && npm run build
 
 # ---- runtime ----
 FROM node:20-bookworm-slim AS runtime

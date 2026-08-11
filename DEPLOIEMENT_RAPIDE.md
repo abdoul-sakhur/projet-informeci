@@ -31,8 +31,10 @@ Les 3 services (`backend`, `frontend`, `caddy`) doivent être `Up (healthy)`. Pu
 
 ## Les 3 règles à ne jamais casser
 
-1. **Ne jamais toucher `docker-compose.yml`** (sans `.prod`) sur le VPS — c'est celui du dev
-   local, pas de la prod.
+1. **Toujours préciser `-f docker-compose.prod.yml`.** Le fichier sans suffixe
+   (`docker-compose.yml`) existe aussi dans le dossier cloné sur le VPS — c'est celui du dev local
+   (code monté en volume, pas d'image compilée). Ne jamais lancer `docker compose up` sans le `-f`,
+   sinon c'est ce fichier-là qui démarre par défaut.
 2. **Un build long lancé via SSH doit être détaché**, sinon une coupure réseau le tue :
    ```bash
    nohup docker compose -f docker-compose.prod.yml --env-file .env.prod build backend \

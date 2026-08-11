@@ -59,4 +59,5 @@ docker compose up --build
 
 - Le frontend attend le backend Strapi sur `http://localhost:1337`.
 - Si vous utilisez Docker, vérifiez que `backend/.env` existe avant de lancer `docker compose up`.
-- Pour déployer en production sur un VPS, voir [DEPLOIEMENT.md](./DEPLOIEMENT.md).
+- Pour redéployer rapidement le site en prod, voir [DEPLOIEMENT_RAPIDE.md](./DEPLOIEMENT_RAPIDE.md) ;
+  pour une première installation complète ou en cas de problème, voir [DEPLOIEMENT.md](./DEPLOIEMENT.md).

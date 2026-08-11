@@ -401,11 +401,12 @@ async function seedMainContent(strapi: Core.Strapi) {
       telephones: [
         { numero: '(+225) 27 22 25 18 39', label: 'Bureau' },
         { numero: '(+225) 07 00 86 41 65', label: 'Mobile' },
+        { numero: '(+225) 07 07 43 15 60', label: 'Mobile 2' },
       ],
       email: 'cabinterformci@gmail.com',
       site_web: 'www.interformci.com',
       horaires: 'Lundi - Vendredi : 8h00 - 17h30',
-      registre_commerce: 'RCCM à renseigner',
+      registre_commerce: 'CI-ABJ-03-2026-M-18258',
     },
   });
 
@@ -478,15 +479,42 @@ async function seedExtraPartenaires(strapi: Core.Strapi) {
 }
 
 async function patchRegistreCommerce(strapi: Core.Strapi) {
-  const [infos] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
-  if (!infos || infos.registre_commerce) return;
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
+  if (!infos) return;
+
+  // Existing installs may have no value yet, or the earlier placeholder pending
+  // the client's real RCCM number — either way, bring them up to the real value.
+  if (infos.registre_commerce && infos.registre_commerce !== 'RCCM à renseigner') return;
 
   await strapi.documents('api::infos-cabinet.infos-cabinet').update({
     documentId: infos.documentId,
-    data: { registre_commerce: 'RCCM à renseigner' },
+    data: { registre_commerce: 'CI-ABJ-03-2026-M-18258' },
   });
 
-  strapi.log.info('[seed] Registre de commerce (placeholder) ajouté.');
+  strapi.log.info('[seed] Registre de commerce mis à jour.');
+}
+
+async function patchTelephones(strapi: Core.Strapi) {
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
+    populate: ['telephones'],
+  });
+  if (!infos) return;
+
+  const numeros: string[] = (infos.telephones ?? []).map((t: any) => t.numero);
+  const troisieme = '(+225) 07 07 43 15 60';
+  if (numeros.includes(troisieme)) return;
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data: {
+      telephones: [
+        ...(infos.telephones ?? []).map((t: any) => ({ id: t.id, numero: t.numero, label: t.label })),
+        { numero: troisieme, label: 'Mobile 2' },
+      ],
+    },
+  });
+
+  strapi.log.info('[seed] Troisième numéro de téléphone ajouté.');
 }
 
 async function seedPhotoBureaux(strapi: Core.Strapi) {
@@ -600,6 +628,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedInterimPole(strapi);
   await seedExtraPartenaires(strapi);
   await patchRegistreCommerce(strapi);
+  await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
 }

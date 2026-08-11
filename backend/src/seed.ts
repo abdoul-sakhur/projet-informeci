@@ -537,7 +537,7 @@ async function seedDirection(strapi: Core.Strapi) {
   if (!infos || infos.direction_nom) return;
 
   const data: Record<string, unknown> = {
-    direction_nom: 'KOFFI Marie-Ange',
+    direction_nom: 'Yao Adjoua Clémentine épouse KASSI',
     direction_titre: 'Gérante-Associée',
     direction_message: DIRECTION_MESSAGE,
   };
@@ -560,9 +560,10 @@ async function seedDirection(strapi: Core.Strapi) {
   await strapi.documents('api::infos-cabinet.infos-cabinet').update({
     documentId: infos.documentId,
     data,
+    status: 'published',
   });
 
-  strapi.log.info('[seed] Mot de la direction importé (nom fictif — à remplacer via l’admin).');
+  strapi.log.info('[seed] Mot de la direction importé.');
 }
 
 async function seedSalles(strapi: Core.Strapi) {

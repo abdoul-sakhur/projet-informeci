@@ -31,6 +31,12 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
 COPY --from=build /app/seed-assets ./seed-assets
 COPY --from=build /app/favicon.png ./favicon.png
+# `strapi start` checks for tsconfig.json in appDir to decide where the compiled
+# output lives; without it, it assumes distDir = appDir and looks for config/src
+# at the project root instead of ./dist, silently loading an empty config (the
+# database connection then explodes with "Cannot destructure property 'client'
+# of 'db.config.connection'"). Just the JSON file — no devDependencies needed.
+COPY --from=build /app/tsconfig.json ./tsconfig.json
 
 # .tmp (sqlite db) and public/uploads must be writable and, in real
 # deployments, mounted as persistent volumes — see docker-compose.prod.yml.

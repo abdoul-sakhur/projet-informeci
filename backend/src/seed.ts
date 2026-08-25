@@ -677,6 +677,37 @@ async function seedMembresEquipe(strapi: Core.Strapi) {
   strapi.log.info('[seed] Premier membre de l’équipe inséré.');
 }
 
+// Postes fournis par la cliente après présentation, en plus de la gérante déjà
+// seedée : crée un emplacement par poste avec un nom placeholder explicite (pas
+// de nom fictif) — à compléter (nom + photo) depuis l'admin.
+const POSTES_EQUIPE = [
+  'Directeur administratif et financier',
+  'Directrice des ressources humaines',
+  'Responsable chargé des études, projets et digitalisation',
+  'Responsable chargé de la formation',
+  'Responsable suivi et planification',
+  'Comptable',
+  'Assistante secrétaire',
+  'Gestionnaire de site',
+  'Chargé de liaison',
+];
+
+async function patchMembresEquipePostes(strapi: Core.Strapi) {
+  const existants: any[] = await strapi.documents('api::membre-equipe.membre-equipe').findMany({});
+  const postesExistants = new Set(existants.map((m) => m.poste));
+  let ordre = existants.reduce((max, m) => Math.max(max, m.ordre ?? 0), 0);
+
+  for (const poste of POSTES_EQUIPE) {
+    if (postesExistants.has(poste)) continue;
+    ordre += 1;
+    await strapi.documents('api::membre-equipe.membre-equipe').create({
+      data: { nom: 'Nom à renseigner', poste, ordre },
+    });
+  }
+
+  strapi.log.info('[seed] Emplacements des postes de l’équipe complétés.');
+}
+
 async function seedSalles(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::salle.salle').count({});
   if (existing > 0) {
@@ -716,4 +747,5 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedDirection(strapi);
   await seedHeroSlides(strapi);
   await seedMembresEquipe(strapi);
+  await patchMembresEquipePostes(strapi);
 }

@@ -27,7 +27,7 @@ const variantClasses: Record<Variant, string> = {
   secondary:
     'bg-secondary text-white hover:brightness-110 shadow-md hover:shadow-lg',
   outline:
-    'border-2 border-white text-white hover:bg-white hover:text-primary',
+    'border-2 border-white text-white shadow-md hover:bg-white hover:text-primary hover:shadow-lg',
   ghost: 'text-primary hover:bg-secondary-light',
 };
 

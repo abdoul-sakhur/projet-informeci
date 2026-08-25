@@ -51,7 +51,7 @@ export default function Hero({ slides }: HeroProps) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark"
+      className="relative flex min-h-screen items-center overflow-hidden bg-primary-dark"
     >
       <AnimatePresence mode="sync">
         {slide?.imageUrl && (
@@ -74,7 +74,7 @@ export default function Hero({ slides }: HeroProps) {
               sizes="100vw"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-dark/85 via-primary/75 to-primary-dark/90" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -108,7 +108,7 @@ export default function Hero({ slides }: HeroProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white ring-1 ring-white/20"
+          className="mb-6 inline-block rounded-full bg-black/25 px-4 py-1.5 text-sm font-semibold text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm"
         >
           Depuis 1998 — Agréé FDFP &amp; FIRCA
         </motion.span>
@@ -121,11 +121,11 @@ export default function Hero({ slides }: HeroProps) {
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
           >
-            <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-bold leading-tight text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.7)] sm:text-5xl lg:text-6xl">
               {slide?.titre}
             </h1>
             {slide?.sousTitre && (
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/85">
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.7)]">
                 {slide.sousTitre}
               </p>
             )}
@@ -152,7 +152,7 @@ export default function Hero({ slides }: HeroProps) {
             <button
               type="button"
               onClick={() => goTo(index - 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-black/40"
               aria-label="Diapositive précédente"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -174,7 +174,7 @@ export default function Hero({ slides }: HeroProps) {
             <button
               type="button"
               onClick={() => goTo(index + 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-black/40"
               aria-label="Diapositive suivante"
             >
               <ChevronRight className="h-4 w-4" aria-hidden="true" />

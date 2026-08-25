@@ -611,9 +611,11 @@ async function seedHeroSlides(strapi: Core.Strapi) {
     return files[0] ?? null;
   };
 
-  const [imgA, imgB, imgC] = await Promise.all([
-    findFile('Gemini_Generated_Image_mu06s8'),
-    findFile('Gemini_Generated_Image_575yrp'),
+  // "Gemini_Generated_Image_*" are AI-generated logo variants (the InterFormci
+  // wordmark on a white background), not photos — never usable as a hero
+  // backdrop. Only the two real, camera-shot photos in the library qualify.
+  const [imgA, imgB] = await Promise.all([
+    findFile('IMG_20221205_141400_535'),
     findFile('IMG_20221205_145358_149'),
   ]);
 
@@ -625,16 +627,10 @@ async function seedHeroSlides(strapi: Core.Strapi) {
       image: imgA?.id,
     },
     {
-      titre: 'Un catalogue de plus de 40 domaines de formation continue',
-      sous_titre:
-        'Bureautique, droit, langues, GRH, sécurité, commerce, transport, informatique et réseau GERME.',
-      image: imgB?.id,
-    },
-    {
       titre: 'Études, appui & accompagnement de projets de développement',
       sous_titre:
         "Structuration d'OPA, suivi-évaluation, diagnostics organisationnels et business plans.",
-      image: imgC?.id,
+      image: imgB?.id,
     },
   ].filter((s) => s.image);
 
@@ -651,6 +647,63 @@ async function seedHeroSlides(strapi: Core.Strapi) {
   });
 
   strapi.log.info('[seed] Slider du hero inséré.');
+}
+
+// One-off correction: the first version of seedHeroSlides mistakenly picked up
+// "Gemini_Generated_Image_*" files as background photos — they're actually
+// AI-generated logo variants (wordmark on white), not photos, which showed up
+// as a giant pale logo/grid watermark behind the hero text. Swap them out for
+// the two real photos already used elsewhere on the site.
+async function patchHeroSlidesRemoveLogoImages(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['hero_slides', 'hero_slides.image', 'hero_background'],
+  });
+  if (!page?.hero_slides?.length) return;
+
+  const usesLogoImage = page.hero_slides.some((s: any) =>
+    s.image?.name?.startsWith('Gemini_Generated_Image')
+  );
+  if (!usesLogoImage) return;
+
+  const findFile = async (nameContains: string) => {
+    const files: any[] = await strapi.db.query('plugin::upload.file').findMany({
+      where: { name: { $contains: nameContains } },
+    });
+    return files[0] ?? null;
+  };
+
+  const [imgA, imgB] = await Promise.all([
+    findFile('IMG_20221205_141400_535'),
+    findFile('IMG_20221205_145358_149'),
+  ]);
+  if (!imgA && !imgB) return;
+
+  const slides = [
+    {
+      titre: 'Formation, Études & Conseils pour le développement de vos organisations',
+      sous_titre:
+        "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.",
+      image: imgA?.id,
+    },
+    {
+      titre: 'Études, appui & accompagnement de projets de développement',
+      sous_titre:
+        "Structuration d'OPA, suivi-évaluation, diagnostics organisationnels et business plans.",
+      image: imgB?.id,
+    },
+  ].filter((s) => s.image);
+
+  const data: Record<string, unknown> = { hero_slides: slides };
+  if (page.hero_background?.name?.startsWith('Gemini_Generated_Image') && imgA?.id) {
+    data.hero_background = imgA.id;
+  }
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data,
+  });
+
+  strapi.log.info('[seed] Images du hero corrigées (logo remplacé par des photos réelles).');
 }
 
 // Real team member (not fabricated): reuses the gérante's already-verified name,
@@ -746,6 +799,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
   await seedHeroSlides(strapi);
+  await patchHeroSlidesRemoveLogoImages(strapi);
   await seedMembresEquipe(strapi);
   await patchMembresEquipePostes(strapi);
 }

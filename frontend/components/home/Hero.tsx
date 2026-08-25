@@ -78,20 +78,22 @@ export default function Hero({ slides }: HeroProps) {
         )}
       </AnimatePresence>
 
-      <motion.div
-        style={{ y }}
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        aria-hidden="true"
-      >
-        <svg className="h-full w-full" preserveAspectRatio="none">
-          <defs>
-            <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </motion.div>
+      {!slide?.imageUrl && (
+        <motion.div
+          style={{ y }}
+          className="pointer-events-none absolute inset-0 opacity-[0.15]"
+          aria-hidden="true"
+        >
+          <svg className="h-full w-full" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </motion.div>
+      )}
 
       <div
         className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"

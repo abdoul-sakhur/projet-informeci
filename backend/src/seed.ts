@@ -594,6 +594,89 @@ async function seedDirection(strapi: Core.Strapi) {
   strapi.log.info('[seed] Mot de la direction importé.');
 }
 
+// The homepage hero was a single static title/subtitle/image; it's now a slider.
+// Reuses images already in the media library (no fabricated photos) and text
+// already established elsewhere on the site (service pole descriptions), so no
+// new claims are introduced — just presented as slides instead of one screen.
+async function seedHeroSlides(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['hero_slides', 'hero_background'],
+  });
+  if (!page || (page.hero_slides && page.hero_slides.length > 0)) return;
+
+  const findFile = async (nameContains: string) => {
+    const files: any[] = await strapi.db.query('plugin::upload.file').findMany({
+      where: { name: { $contains: nameContains } },
+    });
+    return files[0] ?? null;
+  };
+
+  const [imgA, imgB, imgC] = await Promise.all([
+    findFile('Gemini_Generated_Image_mu06s8'),
+    findFile('Gemini_Generated_Image_575yrp'),
+    findFile('IMG_20221205_145358_149'),
+  ]);
+
+  const slides = [
+    {
+      titre: 'Formation, Études & Conseils pour le développement de vos organisations',
+      sous_titre:
+        "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.",
+      image: imgA?.id,
+    },
+    {
+      titre: 'Un catalogue de plus de 40 domaines de formation continue',
+      sous_titre:
+        'Bureautique, droit, langues, GRH, sécurité, commerce, transport, informatique et réseau GERME.',
+      image: imgB?.id,
+    },
+    {
+      titre: 'Études, appui & accompagnement de projets de développement',
+      sous_titre:
+        "Structuration d'OPA, suivi-évaluation, diagnostics organisationnels et business plans.",
+      image: imgC?.id,
+    },
+  ].filter((s) => s.image);
+
+  if (slides.length === 0) return;
+
+  const data: Record<string, unknown> = { hero_slides: slides };
+  if (!page.hero_background && imgA?.id) {
+    data.hero_background = imgA.id;
+  }
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data,
+  });
+
+  strapi.log.info('[seed] Slider du hero inséré.');
+}
+
+// Real team member (not fabricated): reuses the gérante's already-verified name,
+// title and photo (from infos-cabinet.direction_*) as the first entry. Additional
+// staff must be added from the admin — INTERFORMCI hasn't provided more names/photos.
+async function seedMembresEquipe(strapi: Core.Strapi) {
+  const existing = await strapi.documents('api::membre-equipe.membre-equipe').count({});
+  if (existing > 0) return;
+
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
+    populate: ['direction_photo'],
+  });
+  if (!infos?.direction_nom) return;
+
+  await strapi.documents('api::membre-equipe.membre-equipe').create({
+    data: {
+      nom: infos.direction_nom,
+      poste: infos.direction_titre ?? 'Gérante-Associée',
+      photo: infos.direction_photo?.id,
+      ordre: 1,
+    },
+  });
+
+  strapi.log.info('[seed] Premier membre de l’équipe inséré.');
+}
+
 async function seedSalles(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::salle.salle').count({});
   if (existing > 0) {
@@ -631,4 +714,6 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
+  await seedHeroSlides(strapi);
+  await seedMembresEquipe(strapi);
 }

@@ -6,6 +6,7 @@ import { getInfosCabinet, getStrapiMediaURL } from '@/lib/strapi';
 const QUICK_LINKS = [
   { href: '/', label: 'Accueil' },
   { href: '/a-propos', label: 'À propos' },
+  { href: '/equipe', label: 'Équipe' },
   { href: '/services', label: 'Nos services' },
   { href: '/references', label: 'Références' },
   { href: '/contact', label: 'Contact' },

@@ -36,6 +36,11 @@
       "allowedTypes": [
         "images"
       ]
+    },
+    "hero_slides": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.hero-slide"
     }
   }
 }

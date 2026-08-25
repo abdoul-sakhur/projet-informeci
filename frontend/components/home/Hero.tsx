@@ -1,41 +1,83 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-interface HeroProps {
+export interface HeroSlideData {
   titre: string;
-  sousTitre: string;
-  backgroundImageUrl?: string | null;
+  sousTitre: string | null;
+  imageUrl: string | null;
 }
 
-export default function Hero({ titre, sousTitre, backgroundImageUrl }: HeroProps) {
+interface HeroProps {
+  slides: HeroSlideData[];
+}
+
+const AUTOPLAY_MS = 6500;
+
+export default function Hero({ slides }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 600], [0, 140]);
+  const shouldReduceMotion = useReducedMotion();
+
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = slides.length;
+
+  const goTo = useCallback(
+    (next: number) => {
+      if (count === 0) return;
+      setIndex(((next % count) + count) % count);
+    },
+    [count]
+  );
+
+  useEffect(() => {
+    if (count <= 1 || paused || shouldReduceMotion) return;
+    const timer = setInterval(() => goTo(index + 1), AUTOPLAY_MS);
+    return () => clearInterval(timer);
+  }, [count, paused, shouldReduceMotion, index, goTo]);
+
+  const slide = slides[index];
 
   return (
     <section
       ref={ref}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
       className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark"
     >
-      {backgroundImageUrl && (
-        <motion.div style={{ y }} className="absolute inset-0" aria-hidden="true">
-          <Image
-            src={backgroundImageUrl}
-            alt=""
-            fill
-            priority
-            unoptimized
-            sizes="100vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-dark/85 via-primary/75 to-primary-dark/90" />
-        </motion.div>
-      )}
+      <AnimatePresence mode="sync">
+        {slide?.imageUrl && (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 1 }}
+            style={{ y }}
+            className="absolute inset-0"
+            aria-hidden="true"
+          >
+            <Image
+              src={slide.imageUrl}
+              alt=""
+              fill
+              priority={index === 0}
+              unoptimized
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-dark/85 via-primary/75 to-primary-dark/90" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
         style={{ y }}
@@ -71,23 +113,24 @@ export default function Hero({ titre, sousTitre, backgroundImageUrl }: HeroProps
           Depuis 1998 — Agréé FDFP &amp; FIRCA
         </motion.span>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl"
-        >
-          {titre}
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/85"
-        >
-          {sousTitre}
-        </motion.p>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
+          >
+            <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+              {slide?.titre}
+            </h1>
+            {slide?.sousTitre && (
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/85">
+                {slide.sousTitre}
+              </p>
+            )}
+          </motion.div>
+        </AnimatePresence>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -103,6 +146,41 @@ export default function Hero({ titre, sousTitre, backgroundImageUrl }: HeroProps
             Nous contacter
           </Button>
         </motion.div>
+
+        {count > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => goTo(index - 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
+              aria-label="Diapositive précédente"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <div className="flex items-center gap-2">
+              {slides.map((s, i) => (
+                <button
+                  key={s.titre + i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Aller à la diapositive ${i + 1}`}
+                  aria-current={i === index}
+                  className={`h-2 rounded-full transition-all ${
+                    i === index ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => goTo(index + 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
+              aria-label="Diapositive suivante"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

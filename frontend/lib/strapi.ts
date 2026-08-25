@@ -3,6 +3,7 @@ import type {
   Expert,
   FormationCategorie,
   InfosCabinet,
+  MembreEquipe,
   PageAccueil,
   Partenaire,
   ReferenceProjet,
@@ -73,7 +74,11 @@ export async function getPartenaires(): Promise<Partenaire[]> {
 }
 
 export async function getPageAccueil(): Promise<PageAccueil | null> {
-  const res = await fetchAPI<StrapiSingleResponse<PageAccueil>>('/page-accueil?populate=*');
+  // populate=* doesn't deep-populate media nested inside repeatable components
+  // (hero_slides.image), so it's requested explicitly alongside the rest.
+  const res = await fetchAPI<StrapiSingleResponse<PageAccueil>>(
+    '/page-accueil?populate[hero_background]=true&populate[photo_equipe]=true&populate[chiffres_cles]=true&populate[hero_slides][populate]=image'
+  );
   return res?.data ?? null;
 }
 
@@ -89,6 +94,13 @@ export async function getSalles(): Promise<Salle[]> {
 
 export async function getExperts(): Promise<Expert[]> {
   const res = await fetchAPI<StrapiListResponse<Expert>>('/experts?populate=*&sort=ordre:asc');
+  return res?.data ?? [];
+}
+
+export async function getMembresEquipe(): Promise<MembreEquipe[]> {
+  const res = await fetchAPI<StrapiListResponse<MembreEquipe>>(
+    '/membres-equipe?populate=*&sort=ordre:asc'
+  );
   return res?.data ?? [];
 }
 

@@ -25,13 +25,23 @@ export default async function Home() {
     getTemoignages(),
   ]);
 
+  const slides = pageAccueil?.hero_slides?.length
+    ? pageAccueil.hero_slides.map((s) => ({
+        titre: s.titre,
+        sousTitre: s.sous_titre,
+        imageUrl: getStrapiImageURL(s.image, 'large'),
+      }))
+    : [
+        {
+          titre: pageAccueil?.hero_titre ?? FALLBACK_TITRE,
+          sousTitre: pageAccueil?.hero_sous_titre ?? FALLBACK_SOUS_TITRE,
+          imageUrl: getStrapiImageURL(pageAccueil?.hero_background, 'large'),
+        },
+      ];
+
   return (
     <>
-      <Hero
-        titre={pageAccueil?.hero_titre ?? FALLBACK_TITRE}
-        sousTitre={pageAccueil?.hero_sous_titre ?? FALLBACK_SOUS_TITRE}
-        backgroundImageUrl={getStrapiImageURL(pageAccueil?.hero_background, 'large')}
-      />
+      <Hero slides={slides} />
       <StatsBand chiffres={pageAccueil?.chiffres_cles ?? []} />
       <PolesGrid poles={poles} />
       <QuiSommesNous photoEquipeUrl={getStrapiImageURL(pageAccueil?.photo_equipe, 'medium')} />

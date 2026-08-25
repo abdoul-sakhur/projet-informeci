@@ -5,6 +5,7 @@ const BASE_URL = 'https://www.interformci.com';
 const ROUTES = [
   '',
   '/a-propos',
+  '/equipe',
   '/services',
   '/services/etudes-et-projets',
   '/services/formation-continue',

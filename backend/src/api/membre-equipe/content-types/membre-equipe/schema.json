@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "membres_equipe",
+  "info": {
+    "singularName": "membre-equipe",
+    "pluralName": "membres-equipe",
+    "displayName": "Membre de l'équipe",
+    "description": "Membres de l'équipe affichés sur la page Équipe"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true
+    },
+    "poste": {
+      "type": "string",
+      "required": true
+    },
+    "departement": {
+      "type": "string"
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "ordre": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

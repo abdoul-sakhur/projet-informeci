@@ -87,6 +87,13 @@ export interface StrapiMedia {
   } | null;
 }
 
+export interface HeroSlide {
+  id: number;
+  titre: string;
+  sous_titre: string | null;
+  image: StrapiMedia | null;
+}
+
 export interface PageAccueil {
   id: number;
   documentId: string;
@@ -95,6 +102,17 @@ export interface PageAccueil {
   hero_background: StrapiMedia | null;
   photo_equipe: StrapiMedia | null;
   chiffres_cles: ChiffreCle[];
+  hero_slides: HeroSlide[];
+}
+
+export interface MembreEquipe {
+  id: number;
+  documentId: string;
+  nom: string;
+  poste: string;
+  departement: string | null;
+  photo: StrapiMedia | null;
+  ordre: number;
 }
 
 export interface Salle {

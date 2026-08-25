@@ -74,14 +74,13 @@ export default function Hero({ slides }: HeroProps) {
               sizes="100vw"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.div
         style={{ y }}
-        className="pointer-events-none absolute inset-0 opacity-[0.15]"
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
         aria-hidden="true"
       >
         <svg className="h-full w-full" preserveAspectRatio="none">

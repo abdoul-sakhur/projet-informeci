@@ -50,22 +50,14 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const isHome = pathname === '/';
-  const solid = scrolled || !isHome || mobileOpen;
-
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        solid ? 'bg-white shadow-md' : 'bg-transparent'
+      className={`fixed inset-x-0 top-0 z-50 bg-white transition-shadow duration-300 ${
+        scrolled ? 'shadow-md' : 'shadow-sm'
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className={`flex items-center rounded-lg transition-colors ${
-            solid ? '' : 'bg-white/95 px-3 py-1.5 shadow-sm'
-          }`}
-        >
+        <Link href="/" className="flex items-center">
           <Image
             src={logoUrl || '/logo.png'}
             alt="INTERFORMCI — Formation, Études, Conseils"
@@ -88,9 +80,7 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
               >
                 <Link
                   href={link.href}
-                  className={`flex items-center gap-1 font-medium transition-colors hover:text-secondary ${
-                    solid ? 'text-primary-dark' : 'text-white'
-                  }`}
+                  className="flex items-center gap-1 font-medium text-primary-dark transition-colors hover:text-secondary"
                 >
                   {link.label}
                   <ChevronDown className="h-4 w-4" aria-hidden="true" />
@@ -113,9 +103,7 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
               <Link
                 key={link.href}
                 href={link.href}
-                className={`font-medium transition-colors hover:text-secondary ${
-                  solid ? 'text-primary-dark' : 'text-white'
-                }`}
+                className="font-medium text-primary-dark transition-colors hover:text-secondary"
               >
                 {link.label}
               </Link>
@@ -124,7 +112,7 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
         </nav>
 
         <div className="hidden lg:block">
-          <Button href="/contact" variant={solid ? 'primary' : 'outline'}>
+          <Button href="/contact" variant="primary">
             Nous contacter
           </Button>
         </div>
@@ -133,7 +121,7 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
           type="button"
           aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={mobileOpen}
-          className={`p-2 lg:hidden ${solid ? 'text-primary-dark' : 'text-white'}`}
+          className="p-2 text-primary-dark lg:hidden"
           onClick={() => setMobileOpen((v) => !v)}
         >
           {mobileOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}

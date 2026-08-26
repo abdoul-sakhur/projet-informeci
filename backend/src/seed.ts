@@ -723,6 +723,7 @@ async function seedMembresEquipe(strapi: Core.Strapi) {
       nom: infos.direction_nom,
       poste: infos.direction_titre ?? 'Gérante-Associée',
       photo: infos.direction_photo?.id,
+      departement: 'Direction',
       ordre: 1,
     },
   });
@@ -732,17 +733,19 @@ async function seedMembresEquipe(strapi: Core.Strapi) {
 
 // Postes fournis par la cliente après présentation, en plus de la gérante déjà
 // seedée : crée un emplacement par poste avec un nom placeholder explicite (pas
-// de nom fictif) — à compléter (nom + photo) depuis l'admin.
-const POSTES_EQUIPE = [
-  'Directeur administratif et financier',
-  'Directrice des ressources humaines',
-  'Responsable chargé des études, projets et digitalisation',
-  'Responsable chargé de la formation',
-  'Responsable suivi et planification',
-  'Comptable',
-  'Assistante secrétaire',
-  'Gestionnaire de site',
-  'Chargé de liaison',
+// de nom fictif) — à compléter (nom + photo) depuis l'admin. Le champ
+// `departement` sert ici de niveau hiérarchique (grade), pour regrouper la
+// grille de la page /equipe en lignes par rang plutôt qu'en vrac.
+const POSTES_EQUIPE: { poste: string; departement: string }[] = [
+  { poste: 'Directeur administratif et financier', departement: 'Direction' },
+  { poste: 'Directrice des ressources humaines', departement: 'Direction' },
+  { poste: 'Responsable chargé des études, projets et digitalisation', departement: 'Responsables' },
+  { poste: 'Responsable chargé de la formation', departement: 'Responsables' },
+  { poste: 'Responsable suivi et planification', departement: 'Responsables' },
+  { poste: 'Comptable', departement: 'Équipe support' },
+  { poste: 'Assistante secrétaire', departement: 'Équipe support' },
+  { poste: 'Gestionnaire de site', departement: 'Équipe support' },
+  { poste: 'Chargé de liaison', departement: 'Équipe support' },
 ];
 
 async function patchMembresEquipePostes(strapi: Core.Strapi) {
@@ -750,11 +753,24 @@ async function patchMembresEquipePostes(strapi: Core.Strapi) {
   const postesExistants = new Set(existants.map((m) => m.poste));
   let ordre = existants.reduce((max, m) => Math.max(max, m.ordre ?? 0), 0);
 
-  for (const poste of POSTES_EQUIPE) {
+  for (const { poste, departement } of POSTES_EQUIPE) {
     if (postesExistants.has(poste)) continue;
     ordre += 1;
     await strapi.documents('api::membre-equipe.membre-equipe').create({
-      data: { nom: 'Nom à renseigner', poste, ordre },
+      data: { nom: 'Nom à renseigner', poste, departement, ordre },
+    });
+  }
+
+  // Complète le grade des entrées déjà créées avant l'ajout du regroupement
+  // par rang (elles existent mais avec `departement` vide).
+  const parPoste = new Map(POSTES_EQUIPE.map((p) => [p.poste, p.departement]));
+  for (const membre of existants) {
+    if (membre.departement) continue;
+    const departement = parPoste.get(membre.poste) ?? (membre.poste?.includes('Gérante') ? 'Direction' : null);
+    if (!departement) continue;
+    await strapi.documents('api::membre-equipe.membre-equipe').update({
+      documentId: membre.documentId,
+      data: { departement },
     });
   }
 

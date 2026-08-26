@@ -109,7 +109,7 @@ export default function Hero({ slides }: HeroProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 inline-block rounded-full bg-black/25 px-4 py-1.5 text-sm font-semibold text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm"
+          className="mb-6 inline-block rounded-full bg-black/25 px-4 py-1.5 text-sm font-semibold text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]"
         >
           Depuis 1998 — Agréé FDFP &amp; FIRCA
         </motion.span>

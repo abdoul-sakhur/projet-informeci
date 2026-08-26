@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Clock, Mail, MapPin, Phone } from 'lucide-react';
+import { Clock, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
 import PageHeader from '@/components/layout/PageHeader';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import ContactForm from '@/components/contact/ContactForm';
@@ -45,6 +45,15 @@ export default async function ContactPage() {
                     <p className="text-text/60">
                       {infos?.adresse_postale ?? '01 BP 10683 Abidjan 01'}
                     </p>
+                    <a
+                      href="https://maps.app.goo.gl/BYy186kbHfDHAvQPA"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-secondary hover:underline"
+                    >
+                      Voir sur Google Maps
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
                   </div>
                 </li>
                 {(infos?.telephones ?? []).map((tel) => (
@@ -85,7 +94,7 @@ export default async function ContactPage() {
           <div className="overflow-hidden rounded-2xl ring-1 ring-black/5">
             <iframe
               title="Localisation INTERFORMCI — Abidjan Cocody Riviéra 6 Abatta"
-              src="https://www.google.com/maps?q=Cocody+Riviera+6+Abatta+Abidjan&output=embed"
+              src="https://www.google.com/maps?q=5.3312109,-3.9238729&output=embed"
               width="100%"
               height="420"
               style={{ border: 0 }}

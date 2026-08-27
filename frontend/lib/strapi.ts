@@ -1,4 +1,5 @@
 import type {
+  Actualite,
   Domaine,
   Expert,
   FormationCategorie,
@@ -102,6 +103,20 @@ export async function getMembresEquipe(): Promise<MembreEquipe[]> {
     '/membres-equipe?populate=*&sort=ordre:asc'
   );
   return res?.data ?? [];
+}
+
+export async function getActualites(): Promise<Actualite[]> {
+  const res = await fetchAPI<StrapiListResponse<Actualite>>(
+    '/actualites?populate=image,tags&sort=date_debut:desc&pagination[pageSize]=100'
+  );
+  return res?.data ?? [];
+}
+
+export async function getActualiteBySlug(slug: string): Promise<Actualite | null> {
+  const res = await fetchAPI<StrapiListResponse<Actualite>>(
+    `/actualites?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=image,tags`
+  );
+  return res?.data?.[0] ?? null;
 }
 
 // Media URLs returned by Strapi are relative (e.g. "/uploads/photo.png") and are

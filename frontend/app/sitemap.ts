@@ -12,6 +12,7 @@ const ROUTES = [
   '/services/location-de-salles',
   '/services/interim',
   '/references',
+  '/actualites',
   '/contact',
   '/devis',
 ];

@@ -115,6 +115,37 @@ export interface MembreEquipe {
   ordre: number;
 }
 
+export type ActualiteCategorie =
+  | 'Formation'
+  | 'Atelier'
+  | 'Webinaire'
+  | 'Forum'
+  | 'Conférence'
+  | 'Colloque';
+
+export interface Tag {
+  id: number;
+  libelle: string;
+}
+
+export interface Actualite {
+  id: number;
+  documentId: string;
+  titre: string;
+  slug: string;
+  categorie: ActualiteCategorie;
+  date_debut: string;
+  date_fin: string | null;
+  lieu: string;
+  resume: string;
+  description: string | null;
+  image: StrapiMedia | null;
+  tags: Tag[];
+  places_disponibles: number | null;
+  a_la_une: boolean;
+  lien_externe: string | null;
+}
+
 export interface Salle {
   id: number;
   documentId: string;

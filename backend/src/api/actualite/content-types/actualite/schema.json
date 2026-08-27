@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "actualites",
+  "info": {
+    "singularName": "actualite",
+    "pluralName": "actualites",
+    "displayName": "Actualité / Événement",
+    "description": "Formations, ateliers, webinaires et événements affichés sur la page Actualités"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "titre",
+      "required": true
+    },
+    "categorie": {
+      "type": "enumeration",
+      "enum": ["Formation", "Atelier", "Webinaire", "Forum", "Conférence", "Colloque"],
+      "required": true
+    },
+    "date_debut": {
+      "type": "date",
+      "required": true
+    },
+    "date_fin": {
+      "type": "date"
+    },
+    "lieu": {
+      "type": "string",
+      "required": true
+    },
+    "resume": {
+      "type": "text",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "tags": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.tag"
+    },
+    "places_disponibles": {
+      "type": "integer"
+    },
+    "a_la_une": {
+      "type": "boolean",
+      "default": false
+    },
+    "lien_externe": {
+      "type": "string"
+    }
+  }
+}

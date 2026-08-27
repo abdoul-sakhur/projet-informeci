@@ -22,6 +22,7 @@ const NAV_LINKS = [
     ],
   },
   { href: '/references', label: 'Références' },
+  { href: '/actualites', label: 'Actualités' },
   { href: '/devis', label: 'Demande de devis' },
 ];
 

@@ -14,6 +14,7 @@ const PUBLIC_PERMISSIONS: Record<string, string[]> = {
   salle: ['find', 'findOne'],
   expert: ['find', 'findOne'],
   'membre-equipe': ['find', 'findOne'],
+  actualite: ['find', 'findOne'],
 };
 
 async function setPublicPermissions(strapi: Core.Strapi) {

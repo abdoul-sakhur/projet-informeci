@@ -4,6 +4,7 @@ import type {
   Expert,
   FormationCategorie,
   InfosCabinet,
+  Mediatheque,
   MembreEquipe,
   PageAccueil,
   Partenaire,
@@ -117,6 +118,13 @@ export async function getActualiteBySlug(slug: string): Promise<Actualite | null
     `/actualites?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=image,tags`
   );
   return res?.data?.[0] ?? null;
+}
+
+export async function getMediatheque(): Promise<Mediatheque | null> {
+  const res = await fetchAPI<StrapiSingleResponse<Mediatheque>>(
+    '/mediatheque?populate=photos,videos'
+  );
+  return res?.data ?? null;
 }
 
 // Media URLs returned by Strapi are relative (e.g. "/uploads/photo.png") and are

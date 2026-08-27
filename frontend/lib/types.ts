@@ -115,6 +115,19 @@ export interface MembreEquipe {
   ordre: number;
 }
 
+export interface VideoYoutube {
+  id: number;
+  titre: string;
+  url: string;
+}
+
+export interface Mediatheque {
+  id: number;
+  documentId: string;
+  photos: StrapiMedia[];
+  videos: VideoYoutube[];
+}
+
 export type ActualiteCategorie =
   | 'Formation'
   | 'Atelier'

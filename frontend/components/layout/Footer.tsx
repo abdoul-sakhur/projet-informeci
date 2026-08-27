@@ -10,6 +10,7 @@ const QUICK_LINKS = [
   { href: '/services', label: 'Nos services' },
   { href: '/references', label: 'Références' },
   { href: '/actualites', label: 'Actualités' },
+  { href: '/mediatheque', label: 'Médiathèque' },
   { href: '/contact', label: 'Contact' },
 ];
 

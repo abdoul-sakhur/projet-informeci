@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "mediatheque",
+  "info": {
+    "singularName": "mediatheque",
+    "pluralName": "mediatheques",
+    "displayName": "Médiathèque",
+    "description": "Galerie photo et vidéos YouTube affichées sur la page Médiathèque"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "photos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "videos": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.video-youtube"
+    }
+  }
+}

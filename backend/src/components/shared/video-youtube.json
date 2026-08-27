@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_shared_video_youtubes",
+  "info": {
+    "displayName": "Vidéo YouTube",
+    "icon": "play"
+  },
+  "options": {},
+  "attributes": {
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

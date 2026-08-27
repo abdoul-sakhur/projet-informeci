@@ -13,6 +13,7 @@ const ROUTES = [
   '/services/interim',
   '/references',
   '/actualites',
+  '/mediatheque',
   '/contact',
   '/devis',
 ];

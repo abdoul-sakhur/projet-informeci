@@ -7,7 +7,18 @@ import { useEffect, useState } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-const NAV_LINKS = [
+interface NavChild {
+  href: string;
+  label: string;
+}
+
+interface NavLink {
+  href?: string;
+  label: string;
+  children?: NavChild[];
+}
+
+const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'Accueil' },
   { href: '/a-propos', label: 'À propos' },
   { href: '/equipe', label: 'Équipe' },
@@ -22,7 +33,13 @@ const NAV_LINKS = [
     ],
   },
   { href: '/references', label: 'Références' },
-  { href: '/actualites', label: 'Actualités' },
+  {
+    label: 'Ressources',
+    children: [
+      { href: '/actualites', label: 'Actualités' },
+      { href: '/mediatheque', label: 'Médiathèque' },
+    ],
+  },
   { href: '/devis', label: 'Demande de devis' },
 ];
 
@@ -35,7 +52,7 @@ interface HeaderProps {
 export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState(pathname);
 
@@ -57,7 +74,7 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
         scrolled ? 'shadow-md' : 'shadow-sm'
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
           <Image
             src={logoUrl || '/logo.png'}
@@ -70,23 +87,34 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
           />
         </Link>
 
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-4 lg:flex xl:gap-7">
           {NAV_LINKS.map((link) =>
             link.children ? (
               <div
-                key={link.href}
+                key={link.label}
                 className="relative"
-                onMouseEnter={() => setServicesOpen(true)}
-                onMouseLeave={() => setServicesOpen(false)}
+                onMouseEnter={() => setOpenDropdown(link.label)}
+                onMouseLeave={() => setOpenDropdown(null)}
               >
-                <Link
-                  href={link.href}
-                  className="flex items-center gap-1 font-medium text-primary-dark transition-colors hover:text-secondary"
-                >
-                  {link.label}
-                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                </Link>
-                {servicesOpen && (
+                {link.href ? (
+                  <Link
+                    href={link.href}
+                    className="flex items-center gap-1 whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
+                  >
+                    {link.label}
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
+                    aria-expanded={openDropdown === link.label}
+                  >
+                    {link.label}
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
+                {openDropdown === link.label && (
                   <div className="absolute left-0 top-full w-64 rounded-xl bg-white p-2 shadow-xl ring-1 ring-black/5">
                     {link.children.map((child) => (
                       <Link
@@ -103,8 +131,8 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
             ) : (
               <Link
                 key={link.href}
-                href={link.href}
-                className="font-medium text-primary-dark transition-colors hover:text-secondary"
+                href={link.href!}
+                className="whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
               >
                 {link.label}
               </Link>
@@ -136,13 +164,17 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
       >
         <nav className="flex flex-col gap-1 px-4 pb-4 pt-2">
           {NAV_LINKS.map((link) => (
-            <div key={link.href}>
-              <Link
-                href={link.href}
-                className="block rounded-lg px-3 py-3 font-medium text-primary-dark hover:bg-secondary-light"
-              >
-                {link.label}
-              </Link>
+            <div key={link.label}>
+              {link.href ? (
+                <Link
+                  href={link.href}
+                  className="block rounded-lg px-3 py-3 font-medium text-primary-dark hover:bg-secondary-light"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <span className="block px-3 py-3 font-medium text-primary-dark">{link.label}</span>
+              )}
               {link.children && (
                 <div className="ml-3 flex flex-col gap-1 border-l border-gray-200 pl-3">
                   {link.children.map((child) => (

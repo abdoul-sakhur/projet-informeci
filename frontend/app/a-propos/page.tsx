@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { Target, Users2, Sprout, HandHeart, Building } from 'lucide-react';
 import PageHeader from '@/components/layout/PageHeader';
 import SectionTitle from '@/components/ui/SectionTitle';
-import Card from '@/components/ui/Card';
 import CmsImage from '@/components/ui/CmsImage';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
 import Timeline from '@/components/about/Timeline';
+import { getCardGradient } from '@/lib/cardGradients';
 import { getExperts, getInfosCabinet, getSalles, getStrapiImageURL } from '@/lib/strapi';
 
 export const metadata: Metadata = {
@@ -135,12 +135,20 @@ export default async function AProposPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos objectifs" title="Ce qui guide notre action" align="center" />
           <StaggerGrid className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {OBJECTIFS.map((obj) => (
+            {OBJECTIFS.map((obj, i) => (
               <StaggerItem key={obj.texte}>
-                <Card className="h-full">
-                  <obj.icon className="h-8 w-8 text-secondary" aria-hidden="true" />
-                  <p className="mt-4 text-sm leading-relaxed text-text/80">{obj.texte}</p>
-                </Card>
+                <div
+                  className={`group relative flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-br ${getCardGradient(i)} p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                >
+                  <div
+                    className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"
+                    aria-hidden="true"
+                  />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
+                    <obj.icon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <p className="relative mt-4 text-sm leading-relaxed text-white/90">{obj.texte}</p>
+                </div>
               </StaggerItem>
             ))}
           </StaggerGrid>

@@ -24,6 +24,18 @@ const ENTRIES: TimelineEntry[] = [
     description: "INTERFORMCI est agréé par le FIRCA, élargissant son intervention aux projets agricoles.",
   },
   {
+    annee: '2023',
+    titre: 'Réseau GERME',
+    description:
+      "INTERFORMCI rejoint le Réseau GERME (Gérer Mieux son Entreprise), renforçant son offre de formation à l'entrepreneuriat et à la gestion d'entreprise.",
+  },
+  {
+    annee: '2026',
+    titre: 'Agrément Agence Emploi Jeune',
+    description:
+      "INTERFORMCI obtient l'agrément de l'Agence Emploi Jeune, confortant son rôle dans l'insertion professionnelle des jeunes.",
+  },
+  {
     annee: "Aujourd'hui",
     titre: 'Un cabinet de référence',
     description:

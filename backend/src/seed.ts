@@ -792,6 +792,32 @@ async function patchMembresEquipeReels(strapi: Core.Strapi) {
   strapi.log.info('[seed] Effectif réel de l’équipe importé.');
 }
 
+// Ordre d'affichage sur /equipe, par nom (identifiant stable) plutôt que par
+// documentId — modifiable ici pour changer l'ordre par défaut d'un futur
+// déploiement. Reste éditable au cas par cas depuis l'admin (champ `ordre`
+// sur chaque fiche), ce patch ne fait que fixer les valeurs de référence.
+const ORDRE_EQUIPE: Record<string, number> = {
+  'Yao Adjoua Clémentine épouse KASSI': 1,
+  'MOTTOH née Amélie Confort Dossou-Yovo': 2,
+  'KOFFI Agohi Victor Jaurès': 3,
+  'ABRE née Tano Djamba Michelle Stéphanie': 4,
+  'AKAKOU Williams': 5,
+  'KONE Fanvognon Éric': 6,
+  'AHODEHOU Josiane Christelle Senami': 7,
+};
+
+async function patchOrdreEquipe(strapi: Core.Strapi) {
+  const uid = 'api::membre-equipe.membre-equipe';
+  const existants: any[] = await strapi.documents(uid).findMany({});
+
+  for (const membre of existants) {
+    const ordre = ORDRE_EQUIPE[membre.nom];
+    if (ordre !== undefined && membre.ordre !== ordre) {
+      await strapi.documents(uid).update({ documentId: membre.documentId, data: { ordre } });
+    }
+  }
+}
+
 async function seedSalles(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::salle.salle').count({});
   if (existing > 0) {
@@ -833,4 +859,5 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchHeroSlidesRemoveLogoImages(strapi);
   await seedMembresEquipe(strapi);
   await patchMembresEquipeReels(strapi);
+  await patchOrdreEquipe(strapi);
 }

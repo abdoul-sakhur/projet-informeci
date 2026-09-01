@@ -721,60 +721,75 @@ async function seedMembresEquipe(strapi: Core.Strapi) {
   await strapi.documents('api::membre-equipe.membre-equipe').create({
     data: {
       nom: infos.direction_nom,
-      poste: infos.direction_titre ?? 'Gérante-Associée',
+      poste: 'Gérante',
       photo: infos.direction_photo?.id,
       departement: 'Direction',
       ordre: 1,
     },
   });
 
-  strapi.log.info('[seed] Premier membre de l’équipe inséré.');
+  strapi.log.info('[seed] Première membre de l’équipe insérée.');
 }
 
-// Postes fournis par la cliente après présentation, en plus de la gérante déjà
-// seedée : crée un emplacement par poste avec un nom placeholder explicite (pas
-// de nom fictif) — à compléter (nom + photo) depuis l'admin. Le champ
-// `departement` sert ici de niveau hiérarchique (grade), pour regrouper la
-// grille de la page /equipe en lignes par rang plutôt qu'en vrac.
-const POSTES_EQUIPE: { poste: string; departement: string }[] = [
-  { poste: 'Directeur administratif et financier', departement: 'Direction' },
-  { poste: 'Directrice des ressources humaines', departement: 'Direction' },
-  { poste: 'Responsable chargé des études, projets et digitalisation', departement: 'Responsables' },
-  { poste: 'Responsable chargé de la formation', departement: 'Responsables' },
-  { poste: 'Responsable suivi et planification', departement: 'Responsables' },
-  { poste: 'Comptable', departement: 'Équipe support' },
-  { poste: 'Assistante secrétaire', departement: 'Équipe support' },
-  { poste: 'Gestionnaire de site', departement: 'Équipe support' },
-  { poste: 'Chargé de liaison', departement: 'Équipe support' },
+// Effectif réel transmis par la cliente le 01/09/2026 ("Équipe InterFormci") —
+// remplace les emplacements placeholder ("Nom à renseigner") créés avant que
+// la liste officielle ne soit communiquée.
+const EQUIPE_REELLE: { nom: string; poste: string; departement: string }[] = [
+  {
+    nom: 'MOTTOH née Amélie Confort Dossou-Yovo',
+    poste: 'Responsable Ressources Humaines',
+    departement: 'Responsables',
+  },
+  {
+    nom: 'ABRE née Tano Djamba Michelle Stéphanie',
+    poste: 'Responsable Cellule Planification et Suivi des Activités',
+    departement: 'Responsables',
+  },
+  {
+    nom: 'KOFFI Agohi Victor Jaurès',
+    poste: 'Responsable Projets / Études / Digitalisations',
+    departement: 'Responsables',
+  },
+  { nom: 'AKAKOU Williams', poste: 'Responsable Logistique', departement: 'Responsables' },
+  { nom: 'KONE Fanvognon Éric', poste: 'Comptable', departement: 'Équipe support' },
+  {
+    nom: 'AHODEHOU Josiane Christelle Senami',
+    poste: 'Assistante Cellule Planification et Suivi des Activités',
+    departement: 'Équipe support',
+  },
 ];
 
-async function patchMembresEquipePostes(strapi: Core.Strapi) {
-  const existants: any[] = await strapi.documents('api::membre-equipe.membre-equipe').findMany({});
-  const postesExistants = new Set(existants.map((m) => m.poste));
-  let ordre = existants.reduce((max, m) => Math.max(max, m.ordre ?? 0), 0);
+async function patchMembresEquipeReels(strapi: Core.Strapi) {
+  const uid = 'api::membre-equipe.membre-equipe';
+  const existants: any[] = await strapi.documents(uid).findMany({});
 
-  for (const { poste, departement } of POSTES_EQUIPE) {
-    if (postesExistants.has(poste)) continue;
-    ordre += 1;
-    await strapi.documents('api::membre-equipe.membre-equipe').create({
-      data: { nom: 'Nom à renseigner', poste, departement, ordre },
-    });
-  }
-
-  // Complète le grade des entrées déjà créées avant l'ajout du regroupement
-  // par rang (elles existent mais avec `departement` vide).
-  const parPoste = new Map(POSTES_EQUIPE.map((p) => [p.poste, p.departement]));
+  // Aligne le titre de la gérante déjà seedée ("Gérante-Associée") sur
+  // l'intitulé officiel de la liste transmise — indépendant du reste du
+  // patch pour continuer à s'appliquer même une fois l'effectif migré.
   for (const membre of existants) {
-    if (membre.departement) continue;
-    const departement = parPoste.get(membre.poste) ?? (membre.poste?.includes('Gérante') ? 'Direction' : null);
-    if (!departement) continue;
-    await strapi.documents('api::membre-equipe.membre-equipe').update({
-      documentId: membre.documentId,
-      data: { departement },
-    });
+    if (membre.poste === 'Gérante-Associée') {
+      await strapi.documents(uid).update({ documentId: membre.documentId, data: { poste: 'Gérante' } });
+    }
   }
 
-  strapi.log.info('[seed] Emplacements des postes de l’équipe complétés.');
+  // Déjà migré : un des noms réels est présent.
+  if (existants.some((m) => m.nom === 'AKAKOU Williams')) return;
+
+  // Retire les emplacements placeholder ("Nom à renseigner") au profit des
+  // vraies fiches ci-dessous.
+  for (const membre of existants) {
+    if (membre.nom === 'Nom à renseigner') {
+      await strapi.documents(uid).delete({ documentId: membre.documentId });
+    }
+  }
+
+  let ordre = existants.reduce((max, m) => Math.max(max, m.ordre ?? 0), 1);
+  for (const membre of EQUIPE_REELLE) {
+    ordre += 1;
+    await strapi.documents(uid).create({ data: { ...membre, ordre } });
+  }
+
+  strapi.log.info('[seed] Effectif réel de l’équipe importé.');
 }
 
 async function seedSalles(strapi: Core.Strapi) {
@@ -817,5 +832,5 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
   await seedMembresEquipe(strapi);
-  await patchMembresEquipePostes(strapi);
+  await patchMembresEquipeReels(strapi);
 }

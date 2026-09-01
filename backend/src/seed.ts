@@ -792,30 +792,94 @@ async function patchMembresEquipeReels(strapi: Core.Strapi) {
   strapi.log.info('[seed] Effectif réel de l’équipe importé.');
 }
 
-// Ordre d'affichage sur /equipe, par nom (identifiant stable) plutôt que par
-// documentId — modifiable ici pour changer l'ordre par défaut d'un futur
-// déploiement. Reste éditable au cas par cas depuis l'admin (champ `ordre`
-// sur chaque fiche), ce patch ne fait que fixer les valeurs de référence.
-const ORDRE_EQUIPE: Record<string, number> = {
-  'Yao Adjoua Clémentine épouse KASSI': 1,
-  'MOTTOH née Amélie Confort Dossou-Yovo': 2,
-  'KOFFI Agohi Victor Jaurès': 3,
-  'ABRE née Tano Djamba Michelle Stéphanie': 4,
-  'AKAKOU Williams': 5,
-  'KONE Fanvognon Éric': 6,
-  'AHODEHOU Josiane Christelle Senami': 7,
-};
+// Organigramme communiqué par la cliente le 01/09/2026, sur le modèle de
+// agro-map.com/team/ (une section par département). Remplace le regroupement
+// à 3 niveaux (Direction/Responsables/Équipe support) par 7 départements
+// nommés. Les postes sans titulaire connu (DAF, Formation, Secrétariat)
+// restent des emplacements "Nom à renseigner" — pas de nom inventé.
+interface MembreCible {
+  nom: string;
+  poste: string;
+  departement: string;
+  ordre: number;
+}
 
-async function patchOrdreEquipe(strapi: Core.Strapi) {
+const STRUCTURE_EQUIPE: MembreCible[] = [
+  { nom: 'Yao Adjoua Clémentine épouse KASSI', poste: 'Gérante', departement: 'Direction', ordre: 1 },
+  {
+    nom: 'Nom à renseigner',
+    poste: 'Directeur Administratif et Financier',
+    departement: 'Direction',
+    ordre: 2,
+  },
+  {
+    nom: 'MOTTOH née Amélie Confort Dossou-Yovo',
+    poste: 'Responsable Ressources Humaines',
+    departement: 'Direction',
+    ordre: 3,
+  },
+  {
+    nom: 'KOFFI Agohi Victor Jaurès',
+    poste: 'Responsable Projets / Études / Digitalisations',
+    departement: 'Département Projet',
+    ordre: 4,
+  },
+  {
+    nom: 'Nom à renseigner',
+    poste: 'Responsable Formation',
+    departement: 'Département Formation',
+    ordre: 5,
+  },
+  {
+    nom: 'ABRE née Tano Djamba Michelle Stéphanie',
+    poste: 'Responsable Cellule Planification et Suivi des Activités',
+    departement: 'Cellule Planification',
+    ordre: 6,
+  },
+  {
+    nom: 'AHODEHOU Josiane Christelle Senami',
+    poste: 'Assistante Cellule Planification et Suivi des Activités',
+    departement: 'Cellule Planification',
+    ordre: 7,
+  },
+  { nom: 'KONE Fanvognon Éric', poste: 'Comptable', departement: 'Service Comptabilité', ordre: 8 },
+  {
+    nom: 'Nom à renseigner',
+    poste: 'Assistante Secrétaire',
+    departement: 'Secrétariat',
+    ordre: 9,
+  },
+  { nom: 'AKAKOU Williams', poste: 'Agent de route', departement: 'Support', ordre: 10 },
+];
+
+async function patchStructureEquipe(strapi: Core.Strapi) {
   const uid = 'api::membre-equipe.membre-equipe';
   const existants: any[] = await strapi.documents(uid).findMany({});
 
-  for (const membre of existants) {
-    const ordre = ORDRE_EQUIPE[membre.nom];
-    if (ordre !== undefined && membre.ordre !== ordre) {
-      await strapi.documents(uid).update({ documentId: membre.documentId, data: { ordre } });
+  for (const cible of STRUCTURE_EQUIPE) {
+    if (cible.nom === 'Nom à renseigner') {
+      // Emplacement vacant : identifié par son poste, le nom seul n'étant
+      // pas unique entre plusieurs emplacements "Nom à renseigner".
+      const existe = existants.some((m) => m.poste === cible.poste && m.nom === 'Nom à renseigner');
+      if (!existe) {
+        await strapi.documents(uid).create({ data: cible });
+      }
+      continue;
+    }
+
+    const membre = existants.find((m) => m.nom === cible.nom);
+    if (!membre) continue; // pas de nom inventé pour un membre non confirmé
+
+    const changes: Record<string, unknown> = {};
+    if (membre.poste !== cible.poste) changes.poste = cible.poste;
+    if (membre.departement !== cible.departement) changes.departement = cible.departement;
+    if (membre.ordre !== cible.ordre) changes.ordre = cible.ordre;
+    if (Object.keys(changes).length > 0) {
+      await strapi.documents(uid).update({ documentId: membre.documentId, data: changes });
     }
   }
+
+  strapi.log.info('[seed] Organigramme de l’équipe restructuré par département.');
 }
 
 async function seedSalles(strapi: Core.Strapi) {
@@ -859,5 +923,5 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchHeroSlidesRemoveLogoImages(strapi);
   await seedMembresEquipe(strapi);
   await patchMembresEquipeReels(strapi);
-  await patchOrdreEquipe(strapi);
+  await patchStructureEquipe(strapi);
 }

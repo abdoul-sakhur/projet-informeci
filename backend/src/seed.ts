@@ -792,85 +792,128 @@ async function patchMembresEquipeReels(strapi: Core.Strapi) {
   strapi.log.info('[seed] Effectif réel de l’équipe importé.');
 }
 
-// Organigramme communiqué par la cliente le 01/09/2026, sur le modèle de
-// agro-map.com/team/ (une section par département). Remplace le regroupement
-// à 3 niveaux (Direction/Responsables/Équipe support) par 7 départements
-// nommés. Les postes sans titulaire connu (DAF, Formation, Secrétariat)
-// restent des emplacements "Nom à renseigner" — pas de nom inventé.
+// Organigramme communiqué par la cliente le 01/09/2026 (deuxième version,
+// simplifiée à 4 départements : Direction, Département Projets & Formation,
+// Service Comptabilité, Support — fusionne les anciens "Département Projet",
+// "Département Formation" et "Cellule Planification"). Deux nouveaux postes
+// réels (Gestionnaire de site, Agent de liaison) remplacent les emplacements
+// génériques précédents ; l'ancien poste vacant "Assistante Secrétaire" est
+// retiré, absorbé par le poste "Assistante" de Josiane Ahodeou.
+//
+// `nomActuel`/`posteActuel` servent uniquement à retrouver la fiche existante
+// lors du premier passage (une personne réelle qu'on renomme, ou un
+// emplacement vacant qu'on pourvoit) ; une fois migrée, la fiche est
+// retrouvée par son nouveau nom.
 interface MembreCible {
   nom: string;
   poste: string;
   departement: string;
   ordre: number;
+  nomActuel?: string;
+  posteActuel?: string;
 }
 
 const STRUCTURE_EQUIPE: MembreCible[] = [
-  { nom: 'Yao Adjoua Clémentine épouse KASSI', poste: 'Gérante', departement: 'Direction', ordre: 1 },
   {
-    nom: 'Nom à renseigner',
-    poste: 'Directeur Administratif et Financier',
+    nomActuel: 'Yao Adjoua Clémentine épouse KASSI',
+    nom: 'Clémentine KASSI',
+    poste: 'Gérante',
+    departement: 'Direction',
+    ordre: 1,
+  },
+  {
+    posteActuel: 'Directeur Administratif et Financier',
+    nom: 'Jean Jacques KASSI',
+    poste: 'Responsable Financier/Système de Management',
     departement: 'Direction',
     ordre: 2,
   },
   {
-    nom: 'MOTTOH née Amélie Confort Dossou-Yovo',
-    poste: 'Responsable Ressources Humaines',
+    nomActuel: 'MOTTOH née Amélie Confort Dossou-Yovo',
+    nom: 'Amélie MOTTOH',
+    poste: 'Responsable Administratif/Gestion des ressources humaines',
     departement: 'Direction',
     ordre: 3,
   },
   {
-    nom: 'KOFFI Agohi Victor Jaurès',
-    poste: 'Responsable Projets / Études / Digitalisations',
-    departement: 'Département Projet',
+    nomActuel: 'KOFFI Agohi Victor Jaurès',
+    nom: 'Jaurès KOFFI',
+    poste: 'Responsable Projet, Études et Digitalisation',
+    departement: 'Département Projets & Formation',
     ordre: 4,
   },
   {
+    posteActuel: 'Responsable Formation',
     nom: 'Nom à renseigner',
     poste: 'Responsable Formation',
-    departement: 'Département Formation',
+    departement: 'Département Projets & Formation',
     ordre: 5,
   },
   {
-    nom: 'ABRE née Tano Djamba Michelle Stéphanie',
-    poste: 'Responsable Cellule Planification et Suivi des Activités',
-    departement: 'Cellule Planification',
+    nomActuel: 'ABRE née Tano Djamba Michelle Stéphanie',
+    nom: 'Michelle ABRÉ',
+    poste: 'Responsable cellule planification et suivi des activités',
+    departement: 'Département Projets & Formation',
     ordre: 6,
   },
   {
-    nom: 'AHODEHOU Josiane Christelle Senami',
-    poste: 'Assistante Cellule Planification et Suivi des Activités',
-    departement: 'Cellule Planification',
+    nomActuel: 'KONE Fanvognon Éric',
+    nom: 'Éric Koné',
+    poste: 'Comptable',
+    departement: 'Service Comptabilité',
     ordre: 7,
   },
-  { nom: 'KONE Fanvognon Éric', poste: 'Comptable', departement: 'Service Comptabilité', ordre: 8 },
   {
-    nom: 'Nom à renseigner',
-    poste: 'Assistante Secrétaire',
-    departement: 'Secrétariat',
-    ordre: 9,
+    nomActuel: 'AHODEHOU Josiane Christelle Senami',
+    nom: 'Josiane Ahodeou',
+    poste: 'Assistante',
+    departement: 'Support',
+    ordre: 8,
   },
-  { nom: 'AKAKOU Williams', poste: 'Agent de route', departement: 'Support', ordre: 10 },
+  { nom: 'Yannick Blé', poste: 'Gestionnaire de site', departement: 'Support', ordre: 9 },
+  {
+    nomActuel: 'AKAKOU Williams',
+    nom: 'William Akaffou',
+    poste: 'Agent de liaison',
+    departement: 'Support',
+    ordre: 10,
+  },
 ];
 
 async function patchStructureEquipe(strapi: Core.Strapi) {
   const uid = 'api::membre-equipe.membre-equipe';
   const existants: any[] = await strapi.documents(uid).findMany({});
 
+  // L'ancien emplacement vacant "Assistante Secrétaire" (Secrétariat) est
+  // absorbé par le poste "Assistante" (Support, Josiane Ahodeou) — retiré.
+  const secretariatVacant = existants.find(
+    (m) => m.poste === 'Assistante Secrétaire' && m.nom === 'Nom à renseigner'
+  );
+  if (secretariatVacant) {
+    await strapi.documents(uid).delete({ documentId: secretariatVacant.documentId });
+  }
+
   for (const cible of STRUCTURE_EQUIPE) {
-    if (cible.nom === 'Nom à renseigner') {
-      // Emplacement vacant : identifié par son poste, le nom seul n'étant
-      // pas unique entre plusieurs emplacements "Nom à renseigner".
-      const existe = existants.some((m) => m.poste === cible.poste && m.nom === 'Nom à renseigner');
-      if (!existe) {
-        await strapi.documents(uid).create({ data: cible });
-      }
+    let membre: any;
+    if (cible.nomActuel) {
+      membre = existants.find((m) => m.nom === cible.nomActuel || m.nom === cible.nom);
+    } else if (cible.posteActuel) {
+      membre =
+        existants.find((m) => m.poste === cible.posteActuel) ??
+        existants.find((m) => m.nom === cible.nom);
+    } else {
+      membre = existants.find((m) => m.nom === cible.nom);
+    }
+
+    if (!membre) {
+      await strapi.documents(uid).create({
+        data: { nom: cible.nom, poste: cible.poste, departement: cible.departement, ordre: cible.ordre },
+      });
       continue;
     }
 
-    const membre = existants.find((m) => m.nom === cible.nom);
-    if (!membre) continue; // pas de nom inventé pour un membre non confirmé
-
     const changes: Record<string, unknown> = {};
+    if (membre.nom !== cible.nom) changes.nom = cible.nom;
     if (membre.poste !== cible.poste) changes.poste = cible.poste;
     if (membre.departement !== cible.departement) changes.departement = cible.departement;
     if (membre.ordre !== cible.ordre) changes.ordre = cible.ordre;
@@ -879,7 +922,7 @@ async function patchStructureEquipe(strapi: Core.Strapi) {
     }
   }
 
-  strapi.log.info('[seed] Organigramme de l’équipe restructuré par département.');
+  strapi.log.info('[seed] Organigramme de l’équipe mis à jour (4 départements).');
 }
 
 async function seedSalles(strapi: Core.Strapi) {

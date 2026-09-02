@@ -23,6 +23,24 @@ const deniedExecutableTypes = [
 ];
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin => ({
+  email: {
+    config: {
+      provider: 'nodemailer',
+      providerOptions: {
+        host: env('SMTP_HOST', 'smtp.resend.com'),
+        port: env.int('SMTP_PORT', 465),
+        secure: env.bool('SMTP_SECURE', true),
+        auth: {
+          user: env('SMTP_USER', 'resend'),
+          pass: env('RESEND_API_KEY', ''),
+        },
+      },
+      settings: {
+        defaultFrom: env('MAIL_FROM', 'INTERFORMCI <no-reply@interformci.com>'),
+        defaultReplyTo: env('MAIL_REPLY_TO', 'cabinterformci@gmail.com'),
+      },
+    },
+  },
   'users-permissions': {
     config: {
       jwtManagement: 'refresh',

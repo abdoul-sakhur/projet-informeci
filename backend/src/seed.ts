@@ -401,7 +401,6 @@ async function seedMainContent(strapi: Core.Strapi) {
       telephones: [
         { numero: '(+225) 27 22 25 18 39', label: 'Bureau' },
         { numero: '(+225) 07 00 86 41 65', label: 'Mobile' },
-        { numero: '(+225) 07 07 43 15 60', label: 'Mobile 2' },
       ],
       email: 'cabinterformci@gmail.com',
       site_web: 'www.interformci.com',
@@ -494,27 +493,29 @@ async function patchRegistreCommerce(strapi: Core.Strapi) {
   strapi.log.info('[seed] Registre de commerce mis à jour.');
 }
 
+// Le 3e numéro (07 07 43 15 60) avait été ajouté sur demande, mais c'est en
+// réalité le contact personnel de la gérante — retiré des coordonnées
+// publiques du cabinet sur demande du 02/09/2026.
 async function patchTelephones(strapi: Core.Strapi) {
   const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
     populate: ['telephones'],
   });
   if (!infos) return;
 
-  const numeros: string[] = (infos.telephones ?? []).map((t: any) => t.numero);
-  const troisieme = '(+225) 07 07 43 15 60';
-  if (numeros.includes(troisieme)) return;
+  const numeroGerante = '(+225) 07 07 43 15 60';
+  const telephones = (infos.telephones ?? []) as any[];
+  if (!telephones.some((t) => t.numero === numeroGerante)) return;
 
   await strapi.documents('api::infos-cabinet.infos-cabinet').update({
     documentId: infos.documentId,
     data: {
-      telephones: [
-        ...(infos.telephones ?? []).map((t: any) => ({ id: t.id, numero: t.numero, label: t.label })),
-        { numero: troisieme, label: 'Mobile 2' },
-      ],
+      telephones: telephones
+        .filter((t) => t.numero !== numeroGerante)
+        .map((t) => ({ id: t.id, numero: t.numero, label: t.label })),
     },
   });
 
-  strapi.log.info('[seed] Troisième numéro de téléphone ajouté.');
+  strapi.log.info('[seed] Contact personnel de la gérante retiré des coordonnées publiques.');
 }
 
 async function seedPhotoBureaux(strapi: Core.Strapi) {

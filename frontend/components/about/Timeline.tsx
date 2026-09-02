@@ -33,7 +33,13 @@ const ENTRIES: TimelineEntry[] = [
     annee: '2026',
     titre: 'Agrément Agence Emploi Jeune',
     description:
-      "INTERFORMCI obtient l'agrément de l'Agence Emploi Jeune, confortant son rôle dans l'insertion professionnelle des jeunes.",
+      "INTERFORMCI obtient l'agrément de l'Agence Emploi Jeune sous le numéro 000478/MPJIPSC/AEJ/DOP/SDES/SGCPTO, confortant son rôle dans l'insertion professionnelle des jeunes.",
+  },
+  {
+    annee: '2026',
+    titre: 'Agrément DGH',
+    description:
+      "INTERFORMCI obtient l'agrément de la Direction Générale des Hydrocarbures (DGH) sous l'arrêté n°1064 du 14 août 2026.",
   },
   {
     annee: "Aujourd'hui",
@@ -52,7 +58,7 @@ export default function Timeline() {
       />
       <ol className="space-y-12">
         {ENTRIES.map((entry, index) => (
-          <li key={entry.annee} className="relative pl-12 sm:pl-0">
+          <li key={entry.titre} className="relative pl-12 sm:pl-0">
             <AnimatedSection
               direction={index % 2 === 0 ? 'left' : 'right'}
               className={`sm:flex sm:items-center sm:gap-8 ${

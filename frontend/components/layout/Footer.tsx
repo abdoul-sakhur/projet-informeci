@@ -18,6 +18,8 @@ const AGREMENTS = [
   'Agrément FDFP N° 05/99/JPM/PH/NAV du 29.11.99',
   'Agrément FIRCA N° SPS/2020/99',
   'Agrément APEX-CI N° AN-1512040293',
+  'Agrément DGH N° 1064 du 14.08.2026',
+  'Agrément Agence Emploi Jeune N° 000478/MPJIPSC/AEJ/DOP/SDES/SGCPTO',
 ];
 
 export default async function Footer() {

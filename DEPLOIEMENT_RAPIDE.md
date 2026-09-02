@@ -3,6 +3,21 @@
 Le strict nécessaire pour redéployer. Pour la première installation complète ou en cas de
 problème, voir [DEPLOIEMENT.md](./DEPLOIEMENT.md).
 
+> ⚠️ **État actuel (tant que le DNS n'est pas branché) :** Caddy n'est pas encore utilisé — le site
+> tourne sur `docker-compose.test-ports.yml` (ports directs `8080`/`8081`, voir
+> [DEPLOIEMENT.md section 7](./DEPLOIEMENT.md#7-tester-avant-que-le-dns-soit-prêt)). **Tant que
+> c'est le cas, tout rebuild "standard" du frontend casse les images** (l'URL de l'API est injectée
+> au build à partir de `.env.prod`, qui pointe vers le vrai domaine pas encore résolvable) — après
+> chaque redéploiement touchant le frontend, il faut le rebuilder une seconde fois avec l'IP :
+> ```bash
+> cd frontend
+> docker build -f Dockerfile.prod -t projet-informeci-frontend:latest \
+>   --build-arg NEXT_PUBLIC_STRAPI_URL=http://191.215.38.212:8081 .
+> cd .. && docker compose -f docker-compose.prod.yml -f docker-compose.test-ports.yml \
+>   --env-file .env.prod up -d --no-deps frontend
+> ```
+> Ce correctif devient inutile — et cette note à supprimer — une fois le DNS branché et Caddy activé.
+
 ## Se connecter au VPS
 
 ```bash

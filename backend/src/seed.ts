@@ -477,6 +477,79 @@ async function seedExtraPartenaires(strapi: Core.Strapi) {
   strapi.log.info('[seed] Partenaire SAEPP ajouté.');
 }
 
+// Liste de partenaires et agréments transmise par la cliente le 02/09/2026
+// ("Agréments et partenaires pour le site internet.pdf"). Créés sans logo —
+// la cliente les uploadera elle-même depuis l'admin. Pas de description
+// inventée : seules les significations données dans le document sont
+// reprises ; TRESOR, CODIVAL et WACI n'ont pas de signification confirmée
+// (WACI a plusieurs sens possibles listés dans le document, aucun retenu).
+const PARTENAIRES_2026: { nom: string; numero_agrement: string; description: string }[] = [
+  {
+    nom: 'OCPV — Office d’aide à la Commercialisation des Produits Vivriers',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  {
+    nom: 'MIRAH — Ministère des Ressources Animales et Halieutiques',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  {
+    nom: 'INTERCOTON — Organisation Interprofessionnelle Agricole de la Filière Cotonnière',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  { nom: 'TRESOR', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  { nom: 'CODIVAL', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  { nom: 'COIC — Compagnie Ivoirienne de Coton', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  {
+    nom: 'APINOME — Apiculture, Nourriture, Médicament',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  {
+    nom: 'HFHCI — Habitat For Humanity Côte d’Ivoire',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  {
+    nom: 'CIDT — Compagnie Ivoirienne pour le Développement des Textiles',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  {
+    nom: 'SECO — Société d’Exploitation Cotonnière Olam',
+    numero_agrement: '',
+    description: 'Partenaire institutionnel.',
+  },
+  { nom: 'Conseil Régional du Bounkani', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  { nom: 'Arche de Bouaké', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  { nom: 'WACI', numero_agrement: '', description: 'Partenaire institutionnel.' },
+  {
+    nom: 'DGH — Direction Générale des Hydrocarbures',
+    numero_agrement: 'Arrêté n°1064 du 14.08.2026',
+    description: 'Agrément de la Direction Générale des Hydrocarbures.',
+  },
+  {
+    nom: 'Agence Emploi Jeune',
+    numero_agrement: 'N° 000478/MPJIPSC/AEJ/DOP/SDES/SGCPTO',
+    description: "Agrément de l'Agence Emploi Jeune.",
+  },
+];
+
+async function seedPartenairesAgrements2026(strapi: Core.Strapi) {
+  const uid = 'api::partenaire.partenaire';
+  const existants: any[] = await strapi.documents(uid).findMany({});
+  const nomsExistants = new Set(existants.map((p) => p.nom));
+
+  for (const p of PARTENAIRES_2026) {
+    if (nomsExistants.has(p.nom)) continue;
+    await strapi.documents(uid).create({ data: p });
+  }
+
+  strapi.log.info('[seed] Partenaires et agréments du 02/09/2026 ajoutés.');
+}
+
 async function patchRegistreCommerce(strapi: Core.Strapi) {
   const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
   if (!infos) return;
@@ -959,6 +1032,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchExperienceStat(strapi);
   await seedInterimPole(strapi);
   await seedExtraPartenaires(strapi);
+  await seedPartenairesAgrements2026(strapi);
   await patchRegistreCommerce(strapi);
   await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);

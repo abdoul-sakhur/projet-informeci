@@ -273,6 +273,34 @@ const EXPERTS = [
   },
 ];
 
+// Domaines d'expertise complémentaires transmis par la cliente le 07/09/2026 —
+// pas de description fournie, laissée vide plutôt qu'inventée.
+const NOUVEAUX_EXPERTS: { titre: string }[] = [
+  { titre: 'Expert sociologue' },
+  { titre: 'Expert en suivi et évaluation' },
+  { titre: 'Expert en ingénierie de formation' },
+  { titre: 'Expert agronome, Agro économiste' },
+  { titre: 'Expert climatologue, résilience climatique' },
+  { titre: 'Expert en développement durable' },
+  { titre: 'Expert en genre' },
+  { titre: 'Expert finance - comptabilité' },
+  { titre: 'Expert Ressources humaines' },
+];
+
+async function patchExpertsSupplementaires(strapi: Core.Strapi) {
+  const uid = 'api::expert.expert';
+  const existants: any[] = await strapi.documents(uid).findMany({});
+  let ordre = existants.reduce((max, e) => Math.max(max, e.ordre ?? 0), 0);
+
+  for (const cible of NOUVEAUX_EXPERTS) {
+    if (existants.some((e) => e.titre === cible.titre)) continue;
+    ordre += 1;
+    await strapi.documents(uid).create({ data: { ...cible, ordre } });
+  }
+
+  strapi.log.info('[seed] Domaines d’expertise complémentaires ajoutés.');
+}
+
 async function seedMainContent(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::service-pole.service-pole').count({});
   if (existing > 0) {
@@ -982,6 +1010,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedMainContent(strapi);
   await seedSalles(strapi);
   await seedExperts(strapi);
+  await patchExpertsSupplementaires(strapi);
   await patchExperienceStat(strapi);
   await seedInterimPole(strapi);
   await seedExtraPartenaires(strapi);

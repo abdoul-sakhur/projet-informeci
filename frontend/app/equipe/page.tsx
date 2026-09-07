@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import PageHeader from '@/components/layout/PageHeader';
 import SectionTitle from '@/components/ui/SectionTitle';
 import EquipeGrid from '@/components/equipe/EquipeGrid';
-import { getMembresEquipe } from '@/lib/strapi';
+import ExpertsGrid from '@/components/equipe/ExpertsGrid';
+import { getExperts, getMembresEquipe } from '@/lib/strapi';
 
 export const metadata: Metadata = {
   title: 'Équipe',
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function EquipePage() {
-  const membres = await getMembresEquipe();
+  const [membres, experts] = await Promise.all([getMembresEquipe(), getExperts()]);
 
   const groupes = new Map<string, typeof membres>();
   for (const membre of membres) {
@@ -57,6 +58,22 @@ export default async function EquipePage() {
           </div>
         </div>
       </section>
+
+      {experts.length > 0 && (
+        <section className="bg-neutral py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <SectionTitle
+              eyebrow="Experts associés"
+              title="Une expertise complémentaire mobilisable à la demande"
+              align="center"
+              description="Consultants experts sollicités selon les besoins spécifiques de nos missions d'études et d'accompagnement."
+            />
+            <div className="mt-16">
+              <ExpertsGrid experts={experts} />
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

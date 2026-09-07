@@ -7,7 +7,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
 import Timeline from '@/components/about/Timeline';
 import { getCardGradient } from '@/lib/cardGradients';
-import { getExperts, getInfosCabinet, getSalles, getStrapiImageURL } from '@/lib/strapi';
+import { getInfosCabinet, getSalles, getStrapiImageURL } from '@/lib/strapi';
 
 export const metadata: Metadata = {
   title: 'À propos',
@@ -42,11 +42,7 @@ const OBJECTIFS = [
 ];
 
 export default async function AProposPage() {
-  const [infos, experts, salles] = await Promise.all([
-    getInfosCabinet(),
-    getExperts(),
-    getSalles(),
-  ]);
+  const [infos, salles] = await Promise.all([getInfosCabinet(), getSalles()]);
 
   return (
     <>
@@ -156,38 +152,6 @@ export default async function AProposPage() {
       </section>
 
       <section className="bg-neutral py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle
-            eyebrow="Ressources humaines"
-            title="Une équipe pluridisciplinaire d'experts"
-            align="center"
-            description="Permanents et consultants diplômés d'universités et grandes écoles ivoiriennes, américaines, canadiennes et françaises."
-          />
-          <StaggerGrid className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {experts.map((expert) => (
-              <StaggerItem key={expert.id}>
-                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-                  <CmsImage
-                    src={getStrapiImageURL(expert.photo, 'small')}
-                    alt={expert.titre}
-                    label={`Portrait — ${expert.titre}`}
-                    ratio="3/4"
-                    rounded="rounded-none"
-                  />
-                  <div className="p-6">
-                    <h3 className="font-serif text-lg font-bold text-primary-dark">{expert.titre}</h3>
-                    {expert.description && (
-                      <p className="mt-2 text-sm leading-relaxed text-text/75">{expert.description}</p>
-                    )}
-                  </div>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerGrid>
-        </div>
-      </section>
-
-      <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionTitle
             eyebrow="Infrastructures & équipements"

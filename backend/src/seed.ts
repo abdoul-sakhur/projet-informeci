@@ -805,67 +805,6 @@ async function seedMembresEquipe(strapi: Core.Strapi) {
   strapi.log.info('[seed] Première membre de l’équipe insérée.');
 }
 
-// Effectif réel transmis par la cliente le 01/09/2026 ("Équipe InterFormci") —
-// remplace les emplacements placeholder ("Nom à renseigner") créés avant que
-// la liste officielle ne soit communiquée.
-const EQUIPE_REELLE: { nom: string; poste: string; departement: string }[] = [
-  {
-    nom: 'MOTTOH née Amélie Confort Dossou-Yovo',
-    poste: 'Responsable Ressources Humaines',
-    departement: 'Responsables',
-  },
-  {
-    nom: 'ABRE née Tano Djamba Michelle Stéphanie',
-    poste: 'Responsable Cellule Planification et Suivi des Activités',
-    departement: 'Responsables',
-  },
-  {
-    nom: 'KOFFI Agohi Victor Jaurès',
-    poste: 'Responsable Projets / Études / Digitalisations',
-    departement: 'Responsables',
-  },
-  { nom: 'AKAKOU Williams', poste: 'Responsable Logistique', departement: 'Responsables' },
-  { nom: 'KONE Fanvognon Éric', poste: 'Comptable', departement: 'Équipe support' },
-  {
-    nom: 'AHODEHOU Josiane Christelle Senami',
-    poste: 'Assistante Cellule Planification et Suivi des Activités',
-    departement: 'Équipe support',
-  },
-];
-
-async function patchMembresEquipeReels(strapi: Core.Strapi) {
-  const uid = 'api::membre-equipe.membre-equipe';
-  const existants: any[] = await strapi.documents(uid).findMany({});
-
-  // Aligne le titre de la gérante déjà seedée ("Gérante-Associée") sur
-  // l'intitulé officiel de la liste transmise — indépendant du reste du
-  // patch pour continuer à s'appliquer même une fois l'effectif migré.
-  for (const membre of existants) {
-    if (membre.poste === 'Gérante-Associée') {
-      await strapi.documents(uid).update({ documentId: membre.documentId, data: { poste: 'Gérante' } });
-    }
-  }
-
-  // Déjà migré : un des noms réels est présent.
-  if (existants.some((m) => m.nom === 'AKAKOU Williams')) return;
-
-  // Retire les emplacements placeholder ("Nom à renseigner") au profit des
-  // vraies fiches ci-dessous.
-  for (const membre of existants) {
-    if (membre.nom === 'Nom à renseigner') {
-      await strapi.documents(uid).delete({ documentId: membre.documentId });
-    }
-  }
-
-  let ordre = existants.reduce((max, m) => Math.max(max, m.ordre ?? 0), 1);
-  for (const membre of EQUIPE_REELLE) {
-    ordre += 1;
-    await strapi.documents(uid).create({ data: { ...membre, ordre } });
-  }
-
-  strapi.log.info('[seed] Effectif réel de l’équipe importé.');
-}
-
 // Organigramme communiqué par la cliente le 01/09/2026 (deuxième version,
 // simplifiée à 4 départements : Direction, Département Projets & Formation,
 // Service Comptabilité, Support — fusionne les anciens "Département Projet",
@@ -954,6 +893,14 @@ const STRUCTURE_EQUIPE: MembreCible[] = [
   },
 ];
 
+// Anciens intitulés de département d'une itération antérieure de
+// l'organigramme (avant la version finale à 4 départements) : une ancienne
+// étape de migration ("patchMembresEquipeReels", retirée) a recréé ces
+// fiches en double sous ces libellés après que la fiche d'origine avait déjà
+// été renommée ailleurs — doublons orphelins, jamais référencés par
+// STRUCTURE_EQUIPE, à nettoyer.
+const DEPARTEMENTS_OBSOLETES = ['Responsables', 'Équipe support'];
+
 async function patchStructureEquipe(strapi: Core.Strapi) {
   const uid = 'api::membre-equipe.membre-equipe';
   const existants: any[] = await strapi.documents(uid).findMany({});
@@ -967,16 +914,22 @@ async function patchStructureEquipe(strapi: Core.Strapi) {
     await strapi.documents(uid).delete({ documentId: secretariatVacant.documentId });
   }
 
+  const doublons = existants.filter((m) => DEPARTEMENTS_OBSOLETES.includes(m.departement));
+  for (const doublon of doublons) {
+    await strapi.documents(uid).delete({ documentId: doublon.documentId });
+  }
+  const actifs = existants.filter((m) => !doublons.includes(m));
+
   for (const cible of STRUCTURE_EQUIPE) {
     let membre: any;
     if (cible.nomActuel) {
-      membre = existants.find((m) => m.nom === cible.nomActuel || m.nom === cible.nom);
+      membre = actifs.find((m) => m.nom === cible.nomActuel || m.nom === cible.nom);
     } else if (cible.posteActuel) {
       membre =
-        existants.find((m) => m.poste === cible.posteActuel) ??
-        existants.find((m) => m.nom === cible.nom);
+        actifs.find((m) => m.poste === cible.posteActuel) ??
+        actifs.find((m) => m.nom === cible.nom);
     } else {
-      membre = existants.find((m) => m.nom === cible.nom);
+      membre = actifs.find((m) => m.nom === cible.nom);
     }
 
     if (!membre) {
@@ -1040,6 +993,5 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
   await seedMembresEquipe(strapi);
-  await patchMembresEquipeReels(strapi);
   await patchStructureEquipe(strapi);
 }

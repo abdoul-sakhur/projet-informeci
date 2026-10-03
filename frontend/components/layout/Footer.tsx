@@ -20,6 +20,7 @@ const AGREMENTS = [
   'Agrément APEX-CI N° AN-1512040293',
   'Agrément DGH N° 1064 du 14.08.2026',
   'Agrément Agence Emploi Jeune N° 000478/MPJIPSC/AEJ/DOP/SDES/SGCPTO',
+  'Réseau GERME — Gérer Mieux Son Entreprise',
 ];
 
 export default async function Footer() {

@@ -111,7 +111,7 @@ export default function Hero({ slides }: HeroProps) {
           transition={{ duration: 0.6 }}
           className="mb-6 inline-block rounded-full bg-black/25 px-4 py-1.5 text-sm font-semibold text-white shadow-md ring-1 ring-white/30 backdrop-blur-sm [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]"
         >
-          Depuis 1998 — Agréé FDFP &amp; FIRCA
+          Depuis 1998 — Études, Formation, Conseil &amp; Services aux organisations
         </motion.span>
 
         <AnimatePresence mode="wait">

@@ -21,20 +21,29 @@ export default function QuiSommesNous({ photoEquipeUrl }: QuiSommesNousProps) {
         </AnimatedSection>
 
         <AnimatedSection direction="right" delay={0.1}>
-          <SectionTitle eyebrow="Qui sommes-nous" title="Un cabinet ivoirien de référence depuis 1998" />
+          <SectionTitle
+            eyebrow="Qui sommes-nous"
+            title="INTERFORMCI, un cabinet ivoirien au service du développement des organisations"
+          />
           <p className="mt-6 leading-relaxed text-text/80">
-            Créé en 1998 et agréé en novembre 1999 par le FDFP, le Cabinet INTERFORMCI est une
-            structure qui contribue au développement des organisations et entreprises.
-            INTERFORMCI est agréé par le FIRCA depuis 2002.
+            Créé en 1998 à Abidjan, INTERFORMCI est un cabinet ivoirien spécialisé dans les
+            études, la formation professionnelle, l&apos;accompagnement des projets et la mise à
+            disposition de personnel.
           </p>
           <p className="mt-4 leading-relaxed text-text/80">
-            Basé à Abidjan Cocody Riviéra, notre équipe de permanents et d&apos;experts consultants
-            accompagne entreprises, coopératives et institutions dans leurs projets d&apos;études,
-            de formation et de conseil.
+            Depuis sa création, le cabinet accompagne des entreprises, institutions publiques,
+            projets et programmes de développement, ONG, coopératives et organisations
+            professionnelles dans la réalisation de leurs projets et le développement de leurs
+            compétences.
+          </p>
+          <p className="mt-4 leading-relaxed text-text/80">
+            Basé à Cocody Riviera 6 Abatta, INTERFORMCI dispose d&apos;une équipe permanente et
+            d&apos;un réseau d&apos;experts permettant de mobiliser des compétences adaptées à la
+            diversité des missions qui lui sont confiées.
           </p>
           <div className="mt-8">
             <Button href="/a-propos" variant="ghost">
-              Découvrir le cabinet
+              En savoir plus sur INTERFORMCI
             </Button>
           </div>
         </AnimatedSection>

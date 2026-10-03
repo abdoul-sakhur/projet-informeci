@@ -1,16 +1,17 @@
 import Hero from '@/components/home/Hero';
 import StatsBand from '@/components/home/StatsBand';
 import PolesGrid from '@/components/home/PolesGrid';
+import PourquoiNous from '@/components/home/PourquoiNous';
 import QuiSommesNous from '@/components/home/QuiSommesNous';
 import PartenairesBand from '@/components/home/PartenairesBand';
-import Temoignages from '@/components/home/Temoignages';
+import NotreApproche from '@/components/home/NotreApproche';
+import CTASecondaire from '@/components/home/CTASecondaire';
 import CTAFinal from '@/components/home/CTAFinal';
 import {
   getPageAccueil,
   getPartenaires,
   getServicePoles,
   getStrapiImageURL,
-  getTemoignages,
 } from '@/lib/strapi';
 
 const FALLBACK_TITRE = 'Formation, Études & Conseils pour le développement de vos organisations';
@@ -18,11 +19,10 @@ const FALLBACK_SOUS_TITRE =
   "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.";
 
 export default async function Home() {
-  const [pageAccueil, poles, partenaires, temoignages] = await Promise.all([
+  const [pageAccueil, poles, partenaires] = await Promise.all([
     getPageAccueil(),
     getServicePoles(),
     getPartenaires(),
-    getTemoignages(),
   ]);
 
   const slides = pageAccueil?.hero_slides?.length
@@ -44,9 +44,11 @@ export default async function Home() {
       <Hero slides={slides} />
       <StatsBand chiffres={pageAccueil?.chiffres_cles ?? []} />
       <PolesGrid poles={poles} />
+      <PourquoiNous />
       <QuiSommesNous photoEquipeUrl={getStrapiImageURL(pageAccueil?.photo_equipe, 'medium')} />
       <PartenairesBand partenaires={partenaires} />
-      <Temoignages temoignages={temoignages} />
+      <NotreApproche />
+      <CTASecondaire />
       <CTAFinal />
     </>
   );

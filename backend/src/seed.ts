@@ -486,6 +486,26 @@ async function seedInterimPole(strapi: Core.Strapi) {
   strapi.log.info('[seed] Pôle Intérim créé.');
 }
 
+// Réordonnancement demandé par la cliente le 03/10/2026 : Mise à disposition de
+// personnel doit apparaître avant Location de salles (01 Études, 02 Formation,
+// 03 Intérim, 04 Location).
+async function patchReordonnerPoles202610(strapi: Core.Strapi) {
+  const uid = 'api::service-pole.service-pole';
+  const [location, interim] = await Promise.all([
+    strapi.documents(uid).findFirst({ filters: { titre: 'Location de salles' } }),
+    strapi.documents(uid).findFirst({ filters: { titre: INTERIM_TITRE } }),
+  ]);
+  if (!location || !interim) return;
+  if (location.ordre === 4 && interim.ordre === 3) return;
+
+  await Promise.all([
+    strapi.documents(uid).update({ documentId: location.documentId, data: { ordre: 4 } }),
+    strapi.documents(uid).update({ documentId: interim.documentId, data: { ordre: 3 } }),
+  ]);
+
+  strapi.log.info('[seed] Ordre des pôles corrigé (Intérim avant Location).');
+}
+
 const SAEPP_NOM = 'SAEPP — Société Africaine d’Entreposage de Produits Pétroliers';
 
 async function seedExtraPartenaires(strapi: Core.Strapi) {
@@ -576,6 +596,25 @@ async function seedPartenairesAgrements2026(strapi: Core.Strapi) {
   }
 
   strapi.log.info('[seed] Partenaires et agréments du 02/09/2026 ajoutés.');
+}
+
+// Retrait demandé par la cliente le 03/10/2026 : ces trois partenaires doivent
+// disparaître de la page Références (liste "ils nous font confiance"). APEX-CI
+// reste un agrément cité dans le pied de page — seule la fiche partenaire est
+// retirée ici.
+const PARTENAIRES_A_RETIRER_202610 = ['APEX-CI', 'FDPCC', 'OCPV'];
+
+async function patchRetraitPartenaires202610(strapi: Core.Strapi) {
+  const uid = 'api::partenaire.partenaire';
+  const existants: any[] = await strapi.documents(uid).findMany({});
+
+  for (const prefixe of PARTENAIRES_A_RETIRER_202610) {
+    const cible = existants.find((p) => p.nom.startsWith(prefixe));
+    if (!cible) continue;
+    await strapi.documents(uid).delete({ documentId: cible.documentId });
+  }
+
+  strapi.log.info('[seed] Partenaires APEX-CI / FDPCC / OCPV retirés de la liste.');
 }
 
 async function patchRegistreCommerce(strapi: Core.Strapi) {
@@ -808,6 +847,37 @@ async function patchHeroSlidesRemoveLogoImages(strapi: Core.Strapi) {
   strapi.log.info('[seed] Images du hero corrigées (logo remplacé par des photos réelles).');
 }
 
+// Nouveau texte transmis par la cliente le 03/10/2026, pour remplacer le slide
+// "Études, appui & accompagnement..." par un message d'accroche plus généraliste.
+const ANCIEN_TITRE_SLIDE = 'Études, appui & accompagnement de projets de développement';
+const NOUVEAU_TITRE_SLIDE =
+  'Des solutions concrètes pour accompagner vos projets et développer vos organisations';
+const NOUVEAU_SOUS_TITRE_SLIDE =
+  "INTERFORMCI accompagne les entreprises, institutions, projets de développement, ONG, coopératives et organisations professionnelles à travers des services d'études, d'accompagnement de projets, de formation professionnelle continue, de mise à disposition de personnel et de location de salles équipées.";
+
+async function patchHeroSlideCopy202610(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['hero_slides', 'hero_slides.image'],
+  });
+  if (!page?.hero_slides?.length) return;
+
+  const cible = page.hero_slides.find((s: any) => s.titre === ANCIEN_TITRE_SLIDE);
+  if (!cible) return;
+
+  const slides = page.hero_slides.map((s: any) =>
+    s.titre === ANCIEN_TITRE_SLIDE
+      ? { titre: NOUVEAU_TITRE_SLIDE, sous_titre: NOUVEAU_SOUS_TITRE_SLIDE, image: s.image?.id }
+      : { titre: s.titre, sous_titre: s.sous_titre, image: s.image?.id }
+  );
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data: { hero_slides: slides },
+  });
+
+  strapi.log.info('[seed] Texte du slide hero mis à jour (03/10/2026).');
+}
+
 // Real team member (not fabricated): reuses the gérante's already-verified name,
 // title and photo (from infos-cabinet.direction_*) as the first entry. Additional
 // staff must be added from the admin — INTERFORMCI hasn't provided more names/photos.
@@ -1013,14 +1083,17 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchExpertsSupplementaires(strapi);
   await patchExperienceStat(strapi);
   await seedInterimPole(strapi);
+  await patchReordonnerPoles202610(strapi);
   await seedExtraPartenaires(strapi);
   await seedPartenairesAgrements2026(strapi);
+  await patchRetraitPartenaires202610(strapi);
   await patchRegistreCommerce(strapi);
   await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
+  await patchHeroSlideCopy202610(strapi);
   await seedMembresEquipe(strapi);
   await patchStructureEquipe(strapi);
 }

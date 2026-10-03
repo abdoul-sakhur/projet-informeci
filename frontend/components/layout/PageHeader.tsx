@@ -1,10 +1,13 @@
+import type { ReactNode } from 'react';
+
 interface PageHeaderProps {
   eyebrow?: string;
   title: string;
   description?: string;
+  children?: ReactNode;
 }
 
-export default function PageHeader({ eyebrow, title, description }: PageHeaderProps) {
+export default function PageHeader({ eyebrow, title, description, children }: PageHeaderProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark pb-16 pt-36 sm:pb-20 sm:pt-40">
       <div
@@ -21,6 +24,7 @@ export default function PageHeader({ eyebrow, title, description }: PageHeaderPr
         {description && (
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80">{description}</p>
         )}
+        {children && <div className="mt-8 flex flex-wrap items-center justify-center gap-4">{children}</div>}
       </div>
     </section>
   );

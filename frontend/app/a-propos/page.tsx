@@ -288,10 +288,14 @@ export default async function AProposPage() {
                   title="Mot de la gérante-associée"
                   light
                 />
-                <div className="mt-6 space-y-4 text-sm leading-relaxed text-white/85">
-                  {infos.direction_message.split('\n\n').map((paragraphe, index) => (
-                    <p key={index}>{paragraphe}</p>
-                  ))}
+                <p className="mt-6 text-sm leading-relaxed text-white/85">
+                  {infos.direction_message.split('\n\n')[0]}
+                </p>
+                <div className="mt-6">
+                  <Button href="/mot-de-la-direction" variant="outline">
+                    Lire la suite
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                 </div>
               </AnimatedSection>
             </div>

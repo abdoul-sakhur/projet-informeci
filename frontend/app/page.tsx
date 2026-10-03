@@ -4,10 +4,12 @@ import PolesGrid from '@/components/home/PolesGrid';
 import PourquoiNous from '@/components/home/PourquoiNous';
 import QuiSommesNous from '@/components/home/QuiSommesNous';
 import PartenairesBand from '@/components/home/PartenairesBand';
+import MotDirectionTeaser from '@/components/home/MotDirectionTeaser';
 import NotreApproche from '@/components/home/NotreApproche';
 import CTASecondaire from '@/components/home/CTASecondaire';
 import CTAFinal from '@/components/home/CTAFinal';
 import {
+  getInfosCabinet,
   getPageAccueil,
   getPartenaires,
   getServicePoles,
@@ -19,10 +21,11 @@ const FALLBACK_SOUS_TITRE =
   "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.";
 
 export default async function Home() {
-  const [pageAccueil, poles, partenaires] = await Promise.all([
+  const [pageAccueil, poles, partenaires, infos] = await Promise.all([
     getPageAccueil(),
     getServicePoles(),
     getPartenaires(),
+    getInfosCabinet(),
   ]);
 
   const slides = pageAccueil?.hero_slides?.length
@@ -47,6 +50,14 @@ export default async function Home() {
       <PourquoiNous />
       <QuiSommesNous photoEquipeUrl={getStrapiImageURL(pageAccueil?.photo_equipe, 'medium')} />
       <PartenairesBand partenaires={partenaires} />
+      {infos?.direction_message && (
+        <MotDirectionTeaser
+          photoUrl={getStrapiImageURL(infos.direction_photo, 'small')}
+          nom={infos.direction_nom}
+          titre={infos.direction_titre}
+          premierParagraphe={infos.direction_message.split('\n\n')[0]}
+        />
+      )}
       <NotreApproche />
       <CTASecondaire />
       <CTAFinal />

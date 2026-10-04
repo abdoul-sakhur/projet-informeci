@@ -713,6 +713,38 @@ async function seedPhotoBureaux(strapi: Core.Strapi) {
   strapi.log.info('[seed] Photo façade/bureaux importée.');
 }
 
+// Nouvelle photo façade/bureaux uploadée par la cliente dans l'admin Strapi
+// local le 04/10/2026, jamais propagée en prod (qui gardait encore une photo
+// de salle de réunion générique). Remplace systématiquement l'image actuelle,
+// contrairement à seedPhotoBureaux qui ne s'exécute que si le champ est vide.
+async function patchPhotoBureaux202610(strapi: Core.Strapi) {
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({
+    populate: ['photo_bureaux'],
+  });
+  if (!infos || infos.photo_bureaux?.name === 'photo-bureaux-202610.jpeg') return;
+
+  const filepath = path.join(__dirname, '..', '..', 'seed-assets', 'photo-bureaux-202610.jpeg');
+  if (!fs.existsSync(filepath)) return;
+
+  const { size } = fs.statSync(filepath);
+  const [uploaded] = await strapi.plugin('upload').service('upload').upload({
+    data: {},
+    files: {
+      filepath,
+      originalFilename: 'photo-bureaux-202610.jpeg',
+      mimetype: 'image/jpeg',
+      size,
+    },
+  });
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data: { photo_bureaux: uploaded.id },
+  });
+
+  strapi.log.info('[seed] Photo façade/bureaux migrée depuis le contenu local.');
+}
+
 // Nom fictif en attendant le nom réel de la gérante-associée à fournir par le client.
 const DIRECTION_MESSAGE = `Faisant nôtre l'aphorisme du philosophe du 16è siècle, Jean BODIN qui écrivait : « Il n'est de richesse que d'hommes... », le cabinet INTERFORMCI a été porté sur les fonts baptismaux, il y a plus de vingt cinq (25) ans, avec pour vision, d'accompagner les partenaires qui nous feraient confiance, dans leur quête quotidienne de performance.
 
@@ -1186,6 +1218,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchRegistreCommerce(strapi);
   await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);
+  await patchPhotoBureaux202610(strapi);
   await seedDirection(strapi);
   await patchGeranteEtHoraires202610(strapi);
   await patchDirectionMessage202610(strapi);

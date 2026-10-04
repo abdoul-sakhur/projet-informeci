@@ -14,7 +14,7 @@ const RAISONS = [
     icon: Users2,
     titre: 'Une expertise multidisciplinaire',
     texte:
-      'Nos missions mobilisent des consultants et experts issus de différents domaines : développement rural, agriculture, études socio-économiques, suivi-évaluation, formation, ressources humaines, gestion et conseil.',
+      'Nos missions mobilisent des consultants et experts issus de différents domaines : développement rural, agriculture, études socio-économiques, suivi-évaluation, formation, mise à disposition de personnel, gestion et conseil.',
   },
   {
     icon: Target,

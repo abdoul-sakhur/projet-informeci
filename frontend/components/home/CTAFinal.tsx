@@ -9,7 +9,6 @@ export default function CTAFinal() {
           Prêt à renforcer les capacités de votre organisation ?
         </h2>
         <p className="mt-4 text-lg text-white/80">
-          Contactez notre équipe pour un accompagnement sur mesure en formation, étude ou conseil.
         </p>
         <div className="mt-8 flex justify-center">
           <Button href="/contact" variant="secondary">

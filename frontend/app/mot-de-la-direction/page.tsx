@@ -7,7 +7,7 @@ import { getInfosCabinet, getStrapiImageURL } from '@/lib/strapi';
 
 export const metadata: Metadata = {
   title: 'Mot de la direction',
-  description: 'Le mot de la gérante-associée du Cabinet INTERFORMCI.',
+  description: 'Le mot de la gérante du Cabinet INTERFORMCI.',
   alternates: { canonical: '/mot-de-la-direction' },
 };
 
@@ -19,7 +19,7 @@ export default async function MotDeLaDirectionPage() {
       <PageHeader
         eyebrow="Cabinet"
         title="Mot de la direction"
-        description="Le mot de la gérante-associée du Cabinet INTERFORMCI."
+        description="Le mot de la gérante du Cabinet INTERFORMCI."
       />
 
       {infos?.direction_message && (
@@ -47,7 +47,7 @@ export default async function MotDeLaDirectionPage() {
               <AnimatedSection direction="right" delay={0.1}>
                 <SectionTitle
                   eyebrow="Le mot de la direction"
-                  title="Mot de la gérante-associée"
+                  title="Mot de la gérante"
                   light
                 />
                 <div className="mt-6 space-y-4 text-sm leading-relaxed text-white/85">

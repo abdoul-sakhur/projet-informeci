@@ -2,17 +2,12 @@ import type { Metadata } from 'next';
 import {
   ArrowRight,
   BadgeCheck,
-  Building,
   Compass,
   Ear,
   Eye,
-  HandHeart,
   Scale,
   ShieldCheck,
-  Sprout,
-  Target,
   TrendingUp,
-  Users2,
 } from 'lucide-react';
 import PageHeader from '@/components/layout/PageHeader';
 import SectionTitle from '@/components/ui/SectionTitle';
@@ -30,31 +25,6 @@ export const metadata: Metadata = {
     "Découvrez INTERFORMCI, cabinet ivoirien de Formation, Études et Conseils créé en 1998, agréé FDFP et FIRCA.",
   alternates: { canonical: '/a-propos' },
 };
-
-const OBJECTIFS = [
-  {
-    icon: Users2,
-    texte:
-      'Appuyer les associations, coopératives et PME/PMI en organisation, formation, suivi et encadrement technique, gestion.',
-  },
-  {
-    icon: HandHeart,
-    texte: 'Appuyer la lutte contre la pauvreté en milieu rural et urbain.',
-  },
-  {
-    icon: Sprout,
-    texte:
-      "Contribuer au développement des coopératives et de l'économie coopérative / organisations professionnelles agricoles.",
-  },
-  {
-    icon: Target,
-    texte: "Aider à l'insertion sociale des jeunes déscolarisés.",
-  },
-  {
-    icon: Building,
-    texte: 'Contribuer à la création et la dynamisation de structures professionnelles.',
-  },
-];
 
 const VALEURS = [
   {
@@ -84,56 +54,6 @@ const VALEURS = [
   },
 ];
 
-const DOMAINES_EXPERTISE = [
-  {
-    titre: 'Études & développement',
-    items: [
-      'Études socio-économiques',
-      'Études de marché',
-      'Études sectorielles et de filières',
-      'Diagnostics organisationnels',
-      'Études de faisabilité',
-      'Évaluation de projets',
-      'Suivi-évaluation',
-      'Collecte et analyse de données',
-    ],
-  },
-  {
-    titre: 'Accompagnement des organisations',
-    items: [
-      'Structuration des organisations professionnelles',
-      'Accompagnement des coopératives et OPA',
-      'Appui institutionnel et organisationnel',
-      'Élaboration de plans de développement',
-      'Business plans',
-      'Appui-conseil',
-    ],
-  },
-  {
-    titre: 'Formation & développement des compétences',
-    items: [
-      'Formation professionnelle continue',
-      'Renforcement des capacités',
-      'Formation des managers',
-      'Formation technique',
-      'Formation bureautique et informatique',
-      'Formation en gestion et administration',
-      'Formation en ressources humaines',
-    ],
-  },
-  {
-    titre: 'Ressources humaines',
-    items: [
-      'Identification de profils',
-      'Recrutement',
-      'Sélection',
-      'Mise à disposition de personnel',
-      'Gestion administrative du personnel mis à disposition',
-      'Renfort temporaire des équipes',
-    ],
-  },
-];
-
 const RESEAU_EXPERTS_DOMAINES = [
   'Agriculture et développement rural',
   'Socio-économie',
@@ -141,13 +61,38 @@ const RESEAU_EXPERTS_DOMAINES = [
   'Environnement',
   'Genre et inclusion',
   'Formation',
-  'Ressources humaines',
+  'Mise à disposition de personnel',
   'Gestion',
   'Informatique',
   'Études de marché',
   'Chaînes de valeur',
   'Organisation des producteurs',
 ];
+
+// ~10 lignes de texte avant le bouton "Lire la suite" : on accumule les
+// paragraphes (séparés par une ligne vide) jusqu'à ce budget de caractères,
+// plutôt que de ne garder que le premier (parfois un simple slogan d'une
+// ligne), pour donner un aperçu substantiel du mot de la direction.
+const TEASER_BUDGET = 650;
+
+function buildDirectionTeaser(message: string): string {
+  const paragraphes = message.split('\n\n');
+  let teaser = '';
+  for (const paragraphe of paragraphes) {
+    const remaining = TEASER_BUDGET - teaser.length;
+    if (remaining <= 0) break;
+    if (paragraphe.length <= remaining) {
+      teaser = teaser ? `${teaser}\n\n${paragraphe}` : paragraphe;
+      continue;
+    }
+    const slice = paragraphe.slice(0, remaining);
+    const lastSpace = slice.lastIndexOf(' ');
+    const tronque = (lastSpace > 0 ? slice.slice(0, lastSpace) : slice).trimEnd();
+    teaser = teaser ? `${teaser}\n\n${tronque}…` : `${tronque}…`;
+    break;
+  }
+  return teaser;
+}
 
 export default async function AProposPage() {
   const [infos, salles] = await Promise.all([getInfosCabinet(), getSalles()]);
@@ -170,7 +115,7 @@ export default async function AProposPage() {
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <AnimatedSection direction="left">
-            <SectionTitle eyebrow="Présentation" title="Notre histoire, notre mission" />
+            <SectionTitle eyebrow="Présentation" title="Notre histoire" />
             <p className="mt-6 leading-relaxed text-text/80">
               Créé en 1998 et agréé en novembre 1999 par le FDFP, le Cabinet INTERFORMCI est une
               structure qui contribue au développement des organisations et entreprises.
@@ -211,6 +156,15 @@ export default async function AProposPage() {
       </section>
 
       <section className="bg-neutral py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionTitle eyebrow="Notre parcours" title="Une histoire de plus de 28 ans" align="center" />
+          <div className="mt-14">
+            <Timeline />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <AnimatedSection direction="left">
             <div className="h-full rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5">
@@ -227,7 +181,7 @@ export default async function AProposPage() {
                   'Produire des études fiables et directement exploitables',
                   'Accompagner la conception et la mise en œuvre des projets',
                   'Contribuer au développement des compétences professionnelles',
-                  "Faciliter l'accès à des ressources humaines adaptées aux besoins des organisations",
+                  'Faciliter la mise à disposition de personnel adapté aux besoins des organisations',
                   'Proposer des espaces professionnels fonctionnels',
                   'Mobiliser les compétences nécessaires à la réalisation de missions spécifiques',
                 ].map((item) => (
@@ -285,12 +239,16 @@ export default async function AProposPage() {
               <AnimatedSection direction="right" delay={0.1}>
                 <SectionTitle
                   eyebrow="Le mot de la direction"
-                  title="Mot de la gérante-associée"
+                  title="Mot de la gérante"
                   light
                 />
-                <p className="mt-6 text-sm leading-relaxed text-white/85">
-                  {infos.direction_message.split('\n\n')[0]}
-                </p>
+                <div className="mt-6 space-y-4 text-sm leading-relaxed text-white/85">
+                  {buildDirectionTeaser(infos.direction_message)
+                    .split('\n\n')
+                    .map((paragraphe, index) => (
+                      <p key={index}>{paragraphe}</p>
+                    ))}
+                </div>
                 <div className="mt-6">
                   <Button href="/mot-de-la-direction" variant="outline">
                     Lire la suite
@@ -303,21 +261,12 @@ export default async function AProposPage() {
         </section>
       )}
 
-      <section className="bg-neutral py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle eyebrow="Notre parcours" title="Une histoire de plus de 28 ans" align="center" />
-          <div className="mt-14">
-            <Timeline />
-          </div>
-        </div>
-      </section>
-
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle eyebrow="Nos objectifs" title="Ce qui guide notre action" align="center" />
+          <SectionTitle eyebrow="Nos valeurs" title="Ce qui guide notre conduite" align="center" />
           <StaggerGrid className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {OBJECTIFS.map((obj, i) => (
-              <StaggerItem key={obj.texte}>
+            {VALEURS.map((valeur, i) => (
+              <StaggerItem key={valeur.titre}>
                 <div
                   className={`group relative flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-br ${getCardGradient(i)} p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
                 >
@@ -326,59 +275,16 @@ export default async function AProposPage() {
                     aria-hidden="true"
                   />
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
-                    <obj.icon className="h-6 w-6" aria-hidden="true" />
+                    <valeur.icon className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <p className="relative mt-4 text-sm leading-relaxed text-white/90">{obj.texte}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerGrid>
-        </div>
-      </section>
-
-      <section className="bg-white py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle eyebrow="Nos valeurs" title="Ce qui guide notre conduite" align="center" />
-          <StaggerGrid className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {VALEURS.map((valeur) => (
-              <StaggerItem key={valeur.titre}>
-                <div className="h-full rounded-2xl bg-neutral p-6">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary-light text-secondary">
-                    <valeur.icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-4 font-serif text-base font-bold text-primary-dark">
+                  <h3 className="relative mt-4 font-serif text-lg font-bold text-white">
                     {valeur.titre}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-text/75">{valeur.texte}</p>
+                  <p className="relative mt-2 text-sm leading-relaxed text-white/90">{valeur.texte}</p>
                 </div>
               </StaggerItem>
             ))}
           </StaggerGrid>
-        </div>
-      </section>
-
-      <section className="bg-neutral py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle
-            eyebrow="Nos domaines d'expertise"
-            title="Une expertise couvrant l'ensemble du cycle de vos projets"
-            align="center"
-          />
-          <div className="mt-14 grid gap-8 sm:grid-cols-2">
-            {DOMAINES_EXPERTISE.map((domaine) => (
-              <div key={domaine.titre} className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-black/5">
-                <h3 className="font-serif text-lg font-bold text-primary-dark">{domaine.titre}</h3>
-                <ul className="mt-4 space-y-2 text-sm leading-relaxed text-text/75">
-                  {domaine.items.map((item) => (
-                    <li key={item} className="flex items-start gap-2">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -388,7 +294,7 @@ export default async function AProposPage() {
             eyebrow="Notre réseau d'experts"
             title="Une équipe permanente et un réseau d'experts"
             align="center"
-            description="INTERFORMCI s'appuie sur une équipe permanente et sur un réseau de consultants et experts spécialisés mobilisés en fonction des besoins des missions. Cette organisation nous permet de réunir, selon les projets, des compétences dans des domaines tels que :"
+            description="INTERFORMCI s'appuie sur une équipe permanente et sur un réseau de consultants et experts spécialisés, mobilisés en fonction des besoins des missions. Cette organisation nous permet de réunir, selon les projets, des compétences dans des domaines tels que :"
           />
           <div className="mt-8 flex flex-wrap justify-center gap-2">
             {RESEAU_EXPERTS_DOMAINES.map((domaine) => (
@@ -404,12 +310,6 @@ export default async function AProposPage() {
             Pour chaque intervention, nous constituons une équipe correspondant aux exigences
             techniques, au contexte et aux objectifs de la mission.
           </p>
-          <div className="mt-6">
-            <Button href="/equipe" variant="ghost">
-              Découvrir notre équipe
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -476,7 +376,7 @@ export default async function AProposPage() {
             Vous recherchez un partenaire pour votre prochain projet ?
           </h2>
           <p className="mt-4 text-lg text-white/80">
-            Étude, accompagnement, formation, ressources humaines ou espace professionnel :
+            Étude, accompagnement, formation, mise à disposition de personnel ou espace professionnel :
             INTERFORMCI vous accompagne dans la définition et la mise en œuvre de votre besoin.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">

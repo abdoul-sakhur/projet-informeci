@@ -1,27 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Globe, Mail, MapPin, Phone } from 'lucide-react';
 import { getInfosCabinet, getStrapiMediaURL } from '@/lib/strapi';
 
-const QUICK_LINKS = [
-  { href: '/', label: 'Accueil' },
-  { href: '/a-propos', label: 'À propos' },
-  { href: '/mot-de-la-direction', label: 'Mot de la direction' },
-  { href: '/equipe', label: 'Équipe' },
-  { href: '/services', label: 'Nos services' },
-  { href: '/references', label: 'Références' },
-  { href: '/actualites', label: 'Actualités' },
-  { href: '/mediatheque', label: 'Médiathèque' },
-  { href: '/contact', label: 'Contact' },
+const SERVICES_LINKS = [
+  { href: '/services/etudes-et-projets', label: 'Études & accompagnement de projets' },
+  { href: '/services/formation-continue', label: 'Formation professionnelle continue' },
+  { href: '/services/interim', label: 'Mise à disposition de personnel' },
+  { href: '/services/location-de-salles', label: 'Location de salles' },
 ];
 
-const AGREMENTS = [
-  'Agrément FDFP N° 05/99/JPM/PH/NAV du 29.11.99',
-  'Agrément FIRCA N° SPS/2020/99',
-  'Agrément APEX-CI N° AN-1512040293',
-  'Agrément DGH N° 1064 du 14.08.2026',
-  'Agrément Agence Emploi Jeune N° 000478/MPJIPSC/AEJ/DOP/SDES/SGCPTO',
-  'Réseau GERME — Gérer Mieux Son Entreprise',
+const CABINET_LINKS = [
+  { href: '/a-propos', label: 'À propos' },
+  { href: '/actualites', label: 'Actualités' },
+  { href: '/mediatheque', label: 'Médiathèque' },
 ];
 
 export default async function Footer() {
@@ -46,15 +38,18 @@ export default async function Footer() {
                 className="h-12 w-auto"
               />
             </Link>
-            <p className="mt-4 text-sm leading-relaxed">
-              Cabinet ivoirien de Formation, Études &amp; Conseils, créé en 1998 à Abidjan.
+            <p className="mt-4 text-sm font-semibold text-white">
+              Études • Formation • Conseil • Services aux organisations
+            </p>
+            <p className="mt-2 text-sm leading-relaxed">
+              Cabinet ivoirien créé en 1998 à Abidjan.
             </p>
           </div>
 
           <div>
-            <h3 className="font-serif text-base font-semibold text-white">Liens rapides</h3>
+            <h3 className="font-serif text-base font-semibold text-white">Services</h3>
             <ul className="mt-4 space-y-2 text-sm">
-              {QUICK_LINKS.map((link) => (
+              {SERVICES_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="transition-colors hover:text-secondary">
                     {link.label}
@@ -65,10 +60,14 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h3 className="font-serif text-base font-semibold text-white">Agréments</h3>
+            <h3 className="font-serif text-base font-semibold text-white">Cabinet</h3>
             <ul className="mt-4 space-y-2 text-sm">
-              {AGREMENTS.map((item) => (
-                <li key={item}>{item}</li>
+              {CABINET_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="transition-colors hover:text-secondary">
+                    {link.label}
+                  </Link>
+                </li>
               ))}
             </ul>
           </div>
@@ -85,6 +84,7 @@ export default async function Footer() {
                   <Phone className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
                   <a href={`tel:${tel.numero.replace(/\s/g, '')}`} className="hover:text-secondary">
                     {tel.numero}
+                    {tel.label && <span className="text-white/50"> ({tel.label})</span>}
                   </a>
                 </li>
               ))}
@@ -97,18 +97,26 @@ export default async function Footer() {
                   {infos?.email ?? 'cabinterformci@gmail.com'}
                 </a>
               </li>
+              <li className="flex items-center gap-3">
+                <Mail className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
+                <a href="mailto:interformci@yahoo.fr" className="hover:text-secondary">
+                  interformci@yahoo.fr
+                </a>
+              </li>
+              {infos?.site_web && (
+                <li className="flex items-center gap-3">
+                  <Globe className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
+                  <span>{infos.site_web}</span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
       </div>
 
       <div className="border-t border-white/10 py-6">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-center text-xs text-white/60 sm:flex-row sm:text-left sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 text-center text-xs text-white/60 sm:px-6 lg:px-8">
           <p>&copy; {new Date().getFullYear()} INTERFORMCI. Tous droits réservés.</p>
-          <p>
-            SARL — Abidjan, Côte d&apos;Ivoire
-            {infos?.registre_commerce && <> — {infos.registre_commerce}</>}
-          </p>
         </div>
       </div>
     </footer>

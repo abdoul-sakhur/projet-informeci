@@ -28,20 +28,18 @@ const NAV_LINKS: NavLink[] = [
       { href: '/mot-de-la-direction', label: 'Mot de la direction' },
     ],
   },
-  { href: '/equipe', label: 'Équipe' },
   {
     href: '/services',
     label: 'Nos services',
     children: [
       { href: '/services/etudes-et-projets', label: 'Études & projets' },
       { href: '/services/formation-continue', label: 'Formation continue' },
-      { href: '/services/location-de-salles', label: 'Location de salles' },
       { href: '/services/interim', label: 'Intérim & personnel' },
+      { href: '/services/location-de-salles', label: 'Location de salles' },
     ],
   },
-  { href: '/references', label: 'Références' },
   {
-    label: 'Ressources',
+    label: 'Actu & Médias',
     children: [
       { href: '/actualites', label: 'Actualités' },
       { href: '/mediatheque', label: 'Médiathèque' },
@@ -67,6 +65,13 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
     setPrevPathname(pathname);
     setMobileOpen(false);
   }
+
+  const isLinkActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+
+  const isGroupActive = (link: NavLink) =>
+    (link.href ? isLinkActive(link.href) : false) ||
+    (link.children?.some((child) => isLinkActive(child.href)) ?? false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -106,7 +111,12 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
                 {link.href ? (
                   <Link
                     href={link.href}
-                    className="flex items-center gap-1 whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
+                    aria-current={isGroupActive(link) ? 'page' : undefined}
+                    className={`flex items-center gap-1 whitespace-nowrap border-b-2 pb-0.5 font-medium transition-colors ${
+                      isGroupActive(link)
+                        ? 'border-secondary text-primary-dark'
+                        : 'border-transparent text-primary-dark hover:text-secondary'
+                    }`}
                   >
                     {link.label}
                     <ChevronDown className="h-4 w-4" aria-hidden="true" />
@@ -114,8 +124,13 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
                 ) : (
                   <button
                     type="button"
-                    className="flex items-center gap-1 whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
                     aria-expanded={openDropdown === link.label}
+                    aria-current={isGroupActive(link) ? 'page' : undefined}
+                    className={`flex items-center gap-1 whitespace-nowrap border-b-2 pb-0.5 font-medium transition-colors ${
+                      isGroupActive(link)
+                        ? 'border-secondary text-primary-dark'
+                        : 'border-transparent text-primary-dark hover:text-secondary'
+                    }`}
                   >
                     {link.label}
                     <ChevronDown className="h-4 w-4" aria-hidden="true" />
@@ -127,7 +142,12 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
                       <Link
                         key={child.href}
                         href={child.href}
-                        className="block rounded-lg px-4 py-3 text-sm font-medium text-text hover:bg-secondary-light hover:text-secondary"
+                        aria-current={isLinkActive(child.href) ? 'page' : undefined}
+                        className={`block rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                          isLinkActive(child.href)
+                            ? 'bg-secondary-light text-secondary'
+                            : 'text-text hover:bg-secondary-light hover:text-secondary'
+                        }`}
                       >
                         {child.label}
                       </Link>
@@ -139,7 +159,12 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
               <Link
                 key={link.href}
                 href={link.href!}
-                className="whitespace-nowrap font-medium text-primary-dark transition-colors hover:text-secondary"
+                aria-current={isLinkActive(link.href!) ? 'page' : undefined}
+                className={`whitespace-nowrap border-b-2 pb-0.5 font-medium transition-colors ${
+                  isLinkActive(link.href!)
+                    ? 'border-secondary text-primary-dark'
+                    : 'border-transparent text-primary-dark hover:text-secondary'
+                }`}
               >
                 {link.label}
               </Link>
@@ -175,12 +200,23 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
               {link.href ? (
                 <Link
                   href={link.href}
-                  className="block rounded-lg px-3 py-3 font-medium text-primary-dark hover:bg-secondary-light"
+                  aria-current={isGroupActive(link) ? 'page' : undefined}
+                  className={`block rounded-lg px-3 py-3 font-medium transition-colors ${
+                    isGroupActive(link)
+                      ? 'bg-secondary-light text-secondary'
+                      : 'text-primary-dark hover:bg-secondary-light'
+                  }`}
                 >
                   {link.label}
                 </Link>
               ) : (
-                <span className="block px-3 py-3 font-medium text-primary-dark">{link.label}</span>
+                <span
+                  className={`block rounded-lg px-3 py-3 font-medium ${
+                    isGroupActive(link) ? 'text-secondary' : 'text-primary-dark'
+                  }`}
+                >
+                  {link.label}
+                </span>
               )}
               {link.children && (
                 <div className="ml-3 flex flex-col gap-1 border-l border-gray-200 pl-3">
@@ -188,7 +224,12 @@ export default function Header({ logoUrl, logoWidth, logoHeight }: HeaderProps) 
                     <Link
                       key={child.href}
                       href={child.href}
-                      className="rounded-lg px-3 py-2 text-sm text-text hover:bg-secondary-light hover:text-secondary"
+                      aria-current={isLinkActive(child.href) ? 'page' : undefined}
+                      className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isLinkActive(child.href)
+                          ? 'bg-secondary-light font-semibold text-secondary'
+                          : 'text-text hover:bg-secondary-light hover:text-secondary'
+                      }`}
                     >
                       {child.label}
                     </Link>

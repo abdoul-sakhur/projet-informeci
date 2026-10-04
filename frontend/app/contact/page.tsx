@@ -80,7 +80,7 @@ export default async function ContactPage() {
                 <li className="flex items-center gap-3">
                   <Clock className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
                   <span className="font-medium text-text">
-                    {infos?.horaires ?? 'Lundi - Vendredi : 8h00 - 17h30'}
+                    {infos?.horaires ?? 'Lundi - Vendredi : 8h30 - 17h30'}
                   </span>
                 </li>
               </ul>

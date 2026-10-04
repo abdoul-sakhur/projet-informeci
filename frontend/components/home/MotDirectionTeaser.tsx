@@ -34,7 +34,7 @@ export default function MotDirectionTeaser({
             />
           </AnimatedSection>
           <AnimatedSection direction="right" delay={0.1}>
-            <SectionTitle eyebrow="Le mot de la direction" title="Mot de la gérante-associée" light />
+            <SectionTitle eyebrow="Le mot de la direction" title="Mot de la direction" light />
             {nom && (
               <p className="mt-3 text-sm font-semibold text-white">
                 {nom}

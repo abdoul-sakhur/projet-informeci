@@ -4,8 +4,8 @@ import { ArrowRight } from 'lucide-react';
 const ALL_SERVICES = [
   { href: '/services/etudes-et-projets', label: 'Études & projets de développement' },
   { href: '/services/formation-continue', label: 'Formation continue' },
-  { href: '/services/location-de-salles', label: 'Location de salles' },
   { href: '/services/interim', label: 'Intérim & mise à disposition de personnel' },
+  { href: '/services/location-de-salles', label: 'Location de salles' },
 ];
 
 interface AutresPolesProps {

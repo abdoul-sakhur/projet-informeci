@@ -464,6 +464,33 @@ async function patchExperienceStat(strapi: Core.Strapi) {
   strapi.log.info('[seed] Statistique "ans d’expérience" corrigée à 28.');
 }
 
+// Retour client du 03/10/2026 (page 2 du PDF) : remplacer la statistique
+// "agréments & partenariats" par "pôles de services" (4), et réordonner en
+// expérience / pôles / domaines / salles.
+async function patchStatsPolesServices(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['chiffres_cles'],
+  });
+  if (!page?.chiffres_cles) return;
+
+  const dejaFait = page.chiffres_cles.some((c: any) => c.libelle === 'pôles de services');
+  if (dejaFait) return;
+
+  const chiffres_cles = [
+    { valeur: 28, suffixe: '+', libelle: "ans d'expérience" },
+    { valeur: 4, suffixe: '', libelle: 'pôles de services' },
+    { valeur: 40, suffixe: '+', libelle: 'domaines de formation' },
+    { valeur: 2, suffixe: '', libelle: 'salles de formation' },
+  ];
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data: { chiffres_cles },
+  });
+
+  strapi.log.info('[seed] Statistiques accueil réordonnées (pôles de services remplace agréments).');
+}
+
 const INTERIM_TITRE = 'Intérim & mise à disposition de personnel';
 
 async function seedInterimPole(strapi: Core.Strapi) {
@@ -733,6 +760,27 @@ async function seedDirection(strapi: Core.Strapi) {
   });
 
   strapi.log.info('[seed] Mot de la direction importé.');
+}
+
+// Retour du 04/10/2026 : « Gérante-Associée » devient « Gérante » partout, et
+// les horaires d'ouverture sont 8h30-17h30 (et non 8h00).
+async function patchGeranteEtHoraires202610(strapi: Core.Strapi) {
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
+  if (!infos) return;
+
+  const data: Record<string, unknown> = {};
+  if (infos.direction_titre === 'Gérante-Associée') data.direction_titre = 'Gérante';
+  if (infos.horaires === 'Lundi - Vendredi : 8h00 - 17h30') {
+    data.horaires = 'Lundi - Vendredi : 8h30 - 17h30';
+  }
+  if (Object.keys(data).length === 0) return;
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data,
+  });
+
+  strapi.log.info('[seed] Titre de la gérante et horaires corrigés.');
 }
 
 // The homepage hero was a single static title/subtitle/image; it's now a slider.
@@ -1082,6 +1130,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedExperts(strapi);
   await patchExpertsSupplementaires(strapi);
   await patchExperienceStat(strapi);
+  await patchStatsPolesServices(strapi);
   await seedInterimPole(strapi);
   await patchReordonnerPoles202610(strapi);
   await seedExtraPartenaires(strapi);
@@ -1091,6 +1140,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await patchTelephones(strapi);
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
+  await patchGeranteEtHoraires202610(strapi);
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
   await patchHeroSlideCopy202610(strapi);

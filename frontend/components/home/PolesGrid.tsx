@@ -18,18 +18,18 @@ const ICONS: Record<string, LucideIcon> = {
   briefcase: Briefcase,
 };
 
-const SLUGS: Record<number, string> = {
-  1: '/services/etudes-et-projets',
-  2: '/services/formation-continue',
-  3: '/services/location-de-salles',
-  4: '/services/interim',
+const HREFS: Record<string, string> = {
+  'Études, appui & accompagnement de projets de développement': '/services/etudes-et-projets',
+  'Formation professionnelle continue & renforcement des capacités': '/services/formation-continue',
+  'Intérim & mise à disposition de personnel': '/services/interim',
+  'Location de salles': '/services/location-de-salles',
 };
 
-const GRADIENTS: Record<number, string> = {
-  1: 'from-primary to-primary-dark',
-  2: 'from-secondary to-emerald-800',
-  3: 'from-primary to-secondary',
-  4: 'from-amber-500 to-orange-600',
+const GRADIENTS: Record<string, string> = {
+  'Études, appui & accompagnement de projets de développement': 'from-primary to-primary-dark',
+  'Formation professionnelle continue & renforcement des capacités': 'from-secondary to-emerald-800',
+  'Intérim & mise à disposition de personnel': 'from-amber-500 to-orange-600',
+  'Location de salles': 'from-primary to-secondary',
 };
 
 interface PolesGridProps {
@@ -41,17 +41,17 @@ export default function PolesGrid({ poles }: PolesGridProps) {
     <section className="bg-neutral py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionTitle
-          eyebrow="Nos pôles d'activité"
-          title="Une seule exigence : la qualité"
+          eyebrow="Nos services"
+          title="Une expertise au service de vos organisations et de vos projets"
           align="center"
-          description="Études & accompagnement de projets, formation professionnelle continue, location de salles équipées et mise à disposition de personnel."
+          description="INTERFORMCI propose des solutions adaptées aux besoins des entreprises, institutions, projets de développement, ONG, coopératives et organisations professionnelles."
         />
 
         <StaggerGrid className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {poles.map((pole) => {
             const Icon = ICONS[pole.icone] ?? LineChart;
-            const href = SLUGS[pole.ordre] ?? '/services';
-            const gradient = GRADIENTS[pole.ordre] ?? GRADIENTS[1];
+            const href = HREFS[pole.titre] ?? '/services';
+            const gradient = GRADIENTS[pole.titre] ?? 'from-primary to-primary-dark';
             return (
               <StaggerItem key={pole.id}>
                 <div

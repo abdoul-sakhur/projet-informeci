@@ -83,7 +83,10 @@ export default function InterimPage() {
             align="center"
           />
           <p className="mx-auto mt-6 max-w-2xl text-text/80">
-            Fort de son expertise en gestion des ressources humaines et en formation, INTERFORMCI
+            <span className="font-semibold text-primary-dark">
+              Sous-traitance, mise à disposition de personnel temporaire.
+            </span>{' '}
+            Fort de son expertise en mise à disposition de personnel et en formation, INTERFORMCI
             met à la disposition des entreprises du personnel qualifié, dans le cadre d&apos;une
             prestation de sous-traitance. Cette offre permet à nos entreprises clientes de
             renforcer leurs équipes rapidement, sans alourdir leur gestion administrative.

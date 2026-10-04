@@ -451,6 +451,21 @@ Hostinger, donc un sous-domaine dédié (`interformci.srv1896005.hstgr.cloud`) r
 évite le conflit — c'est la valeur à utiliser dans `.env.prod` tant que le vrai domaine n'est pas
 branché.
 
+### 11.8 Le routage Traefik par chemin doit couvrir TOUS les préfixes Strapi, pas seulement `/admin` et `/api`
+
+Avec un seul domaine (pas de sous-domaine `api.` séparé), le routeur backend route par
+`PathPrefix`. Piège : le SPA admin de Strapi appelle des chemins racine qui ne sont **ni** sous
+`/admin` **ni** sous `/api` — le Content Manager appelle directement `/content-manager/...`, le
+Content-Type Builder `/content-type-builder/...`, le plugin Upload `/upload/...` (distinct de
+`/uploads/...` qui sert les fichiers statiques), Users & Permissions `/users-permissions/...`.
+Oublier un de ces préfixes ne fait pas échouer la requête avec une erreur claire — elle tombe
+silencieusement sur le routeur frontend (catch-all) qui renvoie du HTML, et le SPA plante avec
+`Unexpected token <, "<!DOCTYPE "... is not valid JSON` (observé le 04/10/2026 : `/content-manager`
+manquait, l'onglet Content Manager de l'admin ne chargeait pas). La règle actuelle dans
+`docker-compose.prod.yml` liste tous les préfixes connus de Strapi v5 — si un plugin est ajouté
+plus tard et qu'une page de l'admin affiche cette même erreur JSON, vérifier d'abord quel chemin
+racine son appel réseau utilise (onglet Réseau du navigateur) et l'ajouter à la règle.
+
 ---
 
 ## 12. Commandes utiles

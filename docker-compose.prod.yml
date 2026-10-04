@@ -17,11 +17,18 @@
 # DEPLOIEMENT.md. Do NOT add another reverse proxy container here (an
 # earlier attempt at a dedicated Caddy container failed: "address already in
 # use" on :80). Instead, the services below carry Traefik labels directly.
-# A single DOMAIN serves both: the backend router matches /api, /admin and
-# /uploads (Strapi's own URL prefixes, higher priority) and the frontend
-# router catches everything else on the same Host(). Point DOMAIN's DNS
-# A/AAAA record at the VPS before starting this stack — Traefik's
-# Let's Encrypt HTTP challenge needs it to resolve.
+# A single DOMAIN serves both: the backend router matches Strapi's own URL
+# prefixes (higher priority) and the frontend router catches everything else
+# on the same Host(). This must list every top-level prefix Strapi's admin
+# SPA calls — not just /admin and /api: the Content Manager, Content-Type
+# Builder, Upload and Users & Permissions plugins all call bare top-level
+# paths (e.g. /content-manager/..., not /admin/content-manager/...). Missing
+# one here doesn't 404 — it silently falls through to the frontend's
+# catch-all router, which returns its own HTML, breaking that part of the
+# admin with a "Unexpected token <, is not valid JSON" error (confirmed
+# 04/10/2026: /content-manager was missing, broke the Content Manager tab).
+# Point DOMAIN's DNS A/AAAA record at the VPS before starting this stack —
+# Traefik's Let's Encrypt HTTP challenge needs it to resolve.
 #
 # Usage:
 #   cp backend/.env.production.example backend/.env.production   # fill in real secrets
@@ -52,7 +59,7 @@ services:
     cpus: 1.0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.interformci-backend.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/uploads`))"
+      - "traefik.http.routers.interformci-backend.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/uploads`) || PathPrefix(`/content-manager`) || PathPrefix(`/content-type-builder`) || PathPrefix(`/upload`) || PathPrefix(`/users-permissions`) || PathPrefix(`/i18n`) || PathPrefix(`/email`))"
       - "traefik.http.routers.interformci-backend.entrypoints=websecure"
       - "traefik.http.routers.interformci-backend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.interformci-backend.priority=10"

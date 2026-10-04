@@ -9,13 +9,15 @@
 #     state) is a named volume.
 #   - restart policies + healthchecks + resource limits, since this is meant
 #     to stay up unattended.
-#   - Caddy in front, terminating HTTPS automatically (Let's Encrypt) and
-#     routing DOMAIN to the frontend and API_DOMAIN to the backend. Point both
-#     domains' DNS A/AAAA records at the VPS before starting this stack.
+#   - Caddy in front, terminating HTTPS automatically (Let's Encrypt). A
+#     single DOMAIN serves both: Caddy routes /api, /admin and /uploads to
+#     the backend by path (Strapi's own URL prefixes) and everything else to
+#     the frontend. Point DOMAIN's DNS A/AAAA record at the VPS before
+#     starting this stack.
 #
 # Usage:
 #   cp backend/.env.production.example backend/.env.production   # fill in real secrets
-#   cp .env.prod.example .env.prod                               # fill in DOMAIN / API_DOMAIN
+#   cp .env.prod.example .env.prod                               # fill in DOMAIN
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
@@ -46,11 +48,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        NEXT_PUBLIC_STRAPI_URL: https://${API_DOMAIN}
+        NEXT_PUBLIC_STRAPI_URL: https://${DOMAIN}
     restart: unless-stopped
     environment:
       - STRAPI_INTERNAL_URL=http://backend:1337
-      - NEXT_PUBLIC_STRAPI_URL=https://${API_DOMAIN}
+      - NEXT_PUBLIC_STRAPI_URL=https://${DOMAIN}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
@@ -70,7 +72,6 @@ services:
       - "443:443"
     environment:
       - DOMAIN=${DOMAIN}
-      - API_DOMAIN=${API_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

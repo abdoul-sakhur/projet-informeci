@@ -1,9 +1,22 @@
+# Single-hostname setup (used while the real interformci.com domain isn't
+# bought/pointed yet): everything lives under one host, routed by path.
+# Strapi already serves its API under /api, admin under /admin, and
+# uploaded media under /uploads, so path-based routing needs no backend
+# changes. Once a real domain is available with separate www./api.
+# subdomains, this can split back into two site blocks (see git history).
 {$DOMAIN} {
-	reverse_proxy frontend:3000
 	encode gzip zstd
-}
 
-{$API_DOMAIN} {
-	reverse_proxy backend:1337
-	encode gzip zstd
+	handle /api/* {
+		reverse_proxy backend:1337
+	}
+	handle /admin/* {
+		reverse_proxy backend:1337
+	}
+	handle /uploads/* {
+		reverse_proxy backend:1337
+	}
+	handle {
+		reverse_proxy frontend:3000
+	}
 }

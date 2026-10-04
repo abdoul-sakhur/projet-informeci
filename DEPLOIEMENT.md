@@ -259,31 +259,38 @@ section 6 le fait automatiquement au prochain `--build` avec `.env.prod` correct
 
 ---
 
-## 8. Vérifier le déploiement définitif (avec Caddy + domaine)
+## 8. Vérifier le déploiement définitif (HTTPS via Traefik + domaine)
+
+**Important — ce VPS est partagé avec d'autres projets** et fait déjà tourner une seule
+instance Traefik commune (`/docker/traefik-rmu2`, `network_mode: host`, ports 80/443) qui
+découvre automatiquement les conteneurs via des labels Docker. `docker-compose.prod.yml` ne
+lance donc **pas** son propre reverse proxy — `backend` et `frontend` portent directement les
+labels `traefik.*` qui disent à cette instance partagée de les router. Voir le piège 11.6
+plus bas si un déploiement tente de relancer un reverse proxy dédié.
 
 ```bash
 docker compose -f docker-compose.prod.yml ps
 ```
 
-Les trois services doivent être `Up` (et `healthy` dès que les healthchecks passent, après ~30s).
+Les deux services doivent être `Up` (et `healthy` dès que les healthchecks passent, après ~30s).
 
 ```bash
-docker compose -f docker-compose.prod.yml logs -f caddy
+docker logs -f traefik-rmu2-traefik-1
 ```
 
-Vérifier l'absence d'erreur de certificat TLS dans les logs de Caddy.
+Vérifier l'absence d'erreur de certificat TLS (ACME) dans les logs de Traefik.
 
 Puis, depuis un navigateur :
-- `https://www.interformci.com` → le site doit s'afficher, avec un cadenas HTTPS valide.
-- `https://api.interformci.com/admin` → l'écran de création du premier compte administrateur
-  Strapi doit s'afficher (**à faire immédiatement**, avant qu'un tiers ne le fasse à ta place —
-  Strapi n'a pas d'admin tant que ce compte n'existe pas).
+- `https://<DOMAIN>` → le site doit s'afficher, avec un cadenas HTTPS valide.
+- `https://<DOMAIN>/admin` → l'écran de création du premier compte administrateur Strapi doit
+  s'afficher (**à faire immédiatement**, avant qu'un tiers ne le fasse à ta place — Strapi n'a
+  pas d'admin tant que ce compte n'existe pas).
 
 ### 8.1 Créer le compte administrateur Strapi
 
-Ouvrir `https://api.interformci.com/admin` et suivre le formulaire de création de compte
-(email + mot de passe forts). C'est ce compte qui sert ensuite à gérer tout le contenu du site
-(textes, photos, partenaires, messages de contact, etc.) depuis l'admin.
+Ouvrir `https://<DOMAIN>/admin` et suivre le formulaire de création de compte (email + mot de
+passe forts). C'est ce compte qui sert ensuite à gérer tout le contenu du site (textes, photos,
+partenaires, messages de contact, etc.) depuis l'admin.
 
 ---
 
@@ -411,6 +418,26 @@ Si l'agent (Claude Code) tourne en local sur la même machine que le terminal de
 besoin de générer une clé SSH dédiée séparée en plus de celle déjà autorisée par l'utilisateur sur
 le VPS — les deux partagent le même `~/.ssh`. Clarifier ce point en tout début de déploiement évite
 un aller-retour ("quelle clé ajouter où").
+
+### 11.6 Ne jamais lancer un second reverse proxy sur ce VPS — il est déjà partagé
+
+Ce VPS héberge plusieurs projets (`jaures`, `qa-dashboard`, etc.) et une **seule** instance
+Traefik (`/docker/traefik-rmu2`) possède déjà les ports 80/443 (`network_mode: host`). Un
+premier essai de déploiement HTTPS avait ajouté un service `caddy` dédié dans
+`docker-compose.prod.yml` — `docker compose up` a échoué avec `address already in use` sur
+`:80`, et comme la commande ne précisait pas l'override `docker-compose.test-ports.yml`, elle a
+aussi **recréé `backend`/`frontend` sans leurs ports de test exposés**, cassant temporairement le
+lien IP:8080/8081 déjà en place. Deux leçons :
+
+1. **Ne jamais ajouter de conteneur Caddy/nginx/Traefik dédié** dans ce dépôt pour ce VPS. La
+   bonne approche est de poser des labels `traefik.*` directement sur `backend` et `frontend`
+   (déjà fait dans `docker-compose.prod.yml`) — Traefik les découvre tout seul via le socket
+   Docker, pas besoin qu'ils soient sur le même réseau Docker que lui.
+2. **Toujours inclure tous les fichiers compose actifs** (`-f docker-compose.prod.yml -f
+   docker-compose.test-ports.yml`) dans toute commande `up`/`recreate`, même quand on ne touche
+   qu'un service a priori sans rapport (ex. ajouter Traefik) — sinon Compose recalcule la config
+   des *autres* services depuis le fichier de base seul et peut leur retirer des ports qu'un
+   override leur donnait.
 
 ---
 

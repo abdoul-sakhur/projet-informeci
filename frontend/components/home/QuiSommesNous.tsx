@@ -5,19 +5,31 @@ import SectionTitle from '@/components/ui/SectionTitle';
 
 interface QuiSommesNousProps {
   photoEquipeUrl?: string | null;
+  photoFacadeUrl?: string | null;
 }
 
-export default function QuiSommesNous({ photoEquipeUrl }: QuiSommesNousProps) {
+export default function QuiSommesNous({ photoEquipeUrl, photoFacadeUrl }: QuiSommesNousProps) {
   return (
     <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
         <AnimatedSection direction="left">
-          <CmsImage
-            src={photoEquipeUrl}
-            alt="Équipe INTERFORMCI en session de travail"
-            label="Photo équipe INTERFORMCI en session de travail"
-            ratio="4/3"
-          />
+          <div className="relative">
+            <CmsImage
+              src={photoEquipeUrl}
+              alt="Équipe INTERFORMCI en session de travail"
+              label="Photo équipe INTERFORMCI en session de travail"
+              ratio="4/3"
+            />
+            <div className="absolute -bottom-4 -right-4 w-1/3 overflow-hidden rounded-xl border-4 border-white shadow-lg sm:-bottom-6 sm:-right-6 sm:w-2/5">
+              <CmsImage
+                src={photoFacadeUrl}
+                alt="Façade / bureaux INTERFORMCI"
+                label="Photo façade / bureaux INTERFORMCI"
+                ratio="4/3"
+                rounded="rounded-none"
+              />
+            </div>
+          </div>
         </AnimatedSection>
 
         <AnimatedSection direction="right" delay={0.1}>

@@ -7,6 +7,7 @@ import PartenairesBand from '@/components/home/PartenairesBand';
 import NotreApproche from '@/components/home/NotreApproche';
 import CTASecondaire from '@/components/home/CTASecondaire';
 import {
+  getInfosCabinet,
   getPageAccueil,
   getPartenaires,
   getServicePoles,
@@ -18,10 +19,11 @@ const FALLBACK_SOUS_TITRE =
   "Depuis 1998, INTERFORMCI accompagne entreprises, coopératives et institutions ivoiriennes avec expertise et exigence.";
 
 export default async function Home() {
-  const [pageAccueil, poles, partenaires] = await Promise.all([
+  const [pageAccueil, poles, partenaires, infos] = await Promise.all([
     getPageAccueil(),
     getServicePoles(),
     getPartenaires(),
+    getInfosCabinet(),
   ]);
 
   const slides = pageAccueil?.hero_slides?.length
@@ -44,7 +46,10 @@ export default async function Home() {
       <StatsBand chiffres={pageAccueil?.chiffres_cles ?? []} />
       <PolesGrid poles={poles} />
       <PourquoiNous />
-      <QuiSommesNous photoEquipeUrl={getStrapiImageURL(pageAccueil?.photo_equipe, 'medium')} />
+      <QuiSommesNous
+        photoEquipeUrl={getStrapiImageURL(pageAccueil?.photo_equipe, 'medium')}
+        photoFacadeUrl={getStrapiImageURL(infos?.photo_bureaux, 'medium')}
+      />
       <PartenairesBand partenaires={partenaires} />
       <NotreApproche />
       <CTASecondaire />

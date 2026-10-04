@@ -783,6 +783,53 @@ async function patchGeranteEtHoraires202610(strapi: Core.Strapi) {
   strapi.log.info('[seed] Titre de la gérante et horaires corrigés.');
 }
 
+// Mot de la direction mis à jour localement par la cliente (admin Strapi local)
+// le 04/10/2026 — remplace l'ancien texte de lancement par un message plus
+// complet et structuré. Migré ici vers la prod avec le même mécanisme
+// idempotent que le reste du contenu.
+const DIRECTION_MESSAGE_202610 = `TRANSFORMER LES COMPÉTENCES EN PERFORMANCE
+
+Votre partenaire pour développer les talents, renforcer les organisations et faire grandir les projets
+Depuis plusieurs années, notre cabinet accompagne les entreprises, institutions, organisations professionnelles, entrepreneurs et porteurs de projets dans leur développement à travers la formation, le conseil, l'accompagnement et la mise à disposition de compétences adaptées. Notre conviction est simple : la performance durable d'une organisation repose avant tout sur la qualité de ses femmes, de ses hommes et de ses compétences. C'est pourquoi nous concevons des solutions pratiques, adaptées aux réalités de nos clients et orientées vers des résultats concrets et durables.
+
+NOTRE SAVOIR-FAIRE
+
+Nous intervenons notamment dans les domaines de :
+- Formation professionnelle et renforcement des capacités
+- Management et développement des compétences
+- Entrepreneuriat et développement des entreprises
+- Conseil et accompagnement des organisations
+- Recrutement et mise à disposition de personnel
+- Études et ingénierie de projets
+- Accompagnement des organisations professionnelles et des acteurs du développement
+
+UNE EXPERTISE AU SERVICE DE VOS AMBITIONS
+
+Notre approche repose sur l'écoute, l'analyse des besoins et la recherche de solutions concrètes. Nous adaptons nos interventions au contexte, aux objectifs et aux enjeux spécifiques de chaque client. Notre objectif n'est pas simplement de former, mais de permettre à chaque bénéficiaire de développer ses compétences, gagner en efficacité et créer davantage de valeur.
+
+POURQUOI NOUS FAIRE CONFIANCE ?
+
+Expérience – Expertise – Proximité – Innovation – Résultats
+Nous privilégions une relation fondée sur la confiance, la qualité des prestations et l'engagement aux côtés de nos clients. Que vous soyez une entreprise souhaitant renforcer les compétences de vos équipes, une organisation recherchant un accompagnement stratégique ou un entrepreneur désireux de structurer et développer son activité, nous sommes à vos côtés pour transformer vos ambitions en actions et vos actions en résultats.
+
+NOTRE ENGAGEMENT
+
+Vous accompagner aujourd'hui pour construire les performances de demain.
+Parce que chaque organisation a son histoire, ses défis et ses ambitions, nous vous proposons des solutions sur mesure, opérationnelles et orientées vers l'impact.
+Parlons de votre projet. Construisons ensemble la solution qui vous ressemble.`;
+
+async function patchDirectionMessage202610(strapi: Core.Strapi) {
+  const [infos]: any[] = await strapi.documents('api::infos-cabinet.infos-cabinet').findMany({});
+  if (!infos || infos.direction_message === DIRECTION_MESSAGE_202610) return;
+
+  await strapi.documents('api::infos-cabinet.infos-cabinet').update({
+    documentId: infos.documentId,
+    data: { direction_message: DIRECTION_MESSAGE_202610 },
+  });
+
+  strapi.log.info('[seed] Mot de la direction migré depuis le contenu local.');
+}
+
 // The homepage hero was a single static title/subtitle/image; it's now a slider.
 // Reuses images already in the media library (no fabricated photos) and text
 // already established elsewhere on the site (service pole descriptions), so no
@@ -1141,6 +1188,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedPhotoBureaux(strapi);
   await seedDirection(strapi);
   await patchGeranteEtHoraires202610(strapi);
+  await patchDirectionMessage202610(strapi);
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
   await patchHeroSlideCopy202610(strapi);

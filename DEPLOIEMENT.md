@@ -439,6 +439,18 @@ lien IP:8080/8081 déjà en place. Deux leçons :
    des *autres* services depuis le fichier de base seul et peut leur retirer des ports qu'un
    override leur donnait.
 
+### 11.7 Le hostname `srv1896005.hstgr.cloud` nu est déjà pris par un autre projet
+
+En l'absence du vrai nom de domaine (pas encore acheté), on utilise le hostname par défaut
+fourni par Hostinger. Mais `jaures` (autre projet sur ce même VPS) l'utilise déjà tel quel comme
+`FRONTEND_DOMAIN` — mettre `DOMAIN=srv1896005.hstgr.cloud` pour interformci crée une collision
+Traefik sur la règle `Host(...)` : les requêtes atterrissent silencieusement sur l'app de
+l'autre projet (symptôme observé : `GET /` répondait par une redirection `307` vers `/fr`, un
+comportement i18n qui n'existe pas dans ce projet). `*.srv1896005.hstgr.cloud` est wildcardé par
+Hostinger, donc un sous-domaine dédié (`interformci.srv1896005.hstgr.cloud`) résout très bien et
+évite le conflit — c'est la valeur à utiliser dans `.env.prod` tant que le vrai domaine n'est pas
+branché.
+
 ---
 
 ## 12. Commandes utiles

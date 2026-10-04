@@ -1005,6 +1005,53 @@ async function patchHeroSlideCopy202610(strapi: Core.Strapi) {
   strapi.log.info('[seed] Texte du slide hero mis à jour (03/10/2026).');
 }
 
+// Client requested two more hero slides but will upload their own photos later
+// via the admin — only text is added here. Reuses copy already published on
+// /services/formation-continue and /services/interim (no fabricated claims).
+// hero-slide.image is no longer required (see components/shared/hero-slide.json)
+// so these can be saved without one; Hero.tsx already falls back to a plain
+// background when a slide has no image.
+async function patchHeroSlidesAjoutTexteSeul202610(strapi: Core.Strapi) {
+  const [page]: any[] = await strapi.documents('api::page-accueil.page-accueil').findMany({
+    populate: ['hero_slides', 'hero_slides.image'],
+  });
+  if (!page?.hero_slides) return;
+
+  const NOUVEAUX_TITRES = [
+    'Renforcement des capacités & développement des compétences',
+    'Du personnel qualifié pour votre entreprise',
+  ];
+  if (NOUVEAUX_TITRES.every((t) => page.hero_slides.some((s: any) => s.titre === t))) return;
+
+  const slides = page.hero_slides.map((s: any) => ({
+    titre: s.titre,
+    sous_titre: s.sous_titre,
+    image: s.image?.id,
+  }));
+
+  if (!slides.some((s: any) => s.titre === NOUVEAUX_TITRES[0])) {
+    slides.push({
+      titre: NOUVEAUX_TITRES[0],
+      sous_titre:
+        'Un catalogue de plus de 40 domaines de formation, dispensés par des experts consultants qualifiés.',
+    });
+  }
+  if (!slides.some((s: any) => s.titre === NOUVEAUX_TITRES[1])) {
+    slides.push({
+      titre: NOUVEAUX_TITRES[1],
+      sous_titre:
+        "INTERFORMCI met à disposition des entreprises du personnel qualifié, dans le cadre d'une prestation de sous-traitance, à Abidjan.",
+    });
+  }
+
+  await strapi.documents('api::page-accueil.page-accueil').update({
+    documentId: page.documentId,
+    data: { hero_slides: slides },
+  });
+
+  strapi.log.info('[seed] Deux slides hero (texte seul, sans image) ajoutés.');
+}
+
 // Real team member (not fabricated): reuses the gérante's already-verified name,
 // title and photo (from infos-cabinet.direction_*) as the first entry. Additional
 // staff must be added from the admin — INTERFORMCI hasn't provided more names/photos.
@@ -1225,6 +1272,7 @@ export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedHeroSlides(strapi);
   await patchHeroSlidesRemoveLogoImages(strapi);
   await patchHeroSlideCopy202610(strapi);
+  await patchHeroSlidesAjoutTexteSeul202610(strapi);
   await seedMembresEquipe(strapi);
   await patchStructureEquipe(strapi);
 }

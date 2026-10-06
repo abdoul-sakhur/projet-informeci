@@ -97,12 +97,6 @@ export default async function Footer() {
                   {infos?.email ?? 'cabinterformci@gmail.com'}
                 </a>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
-                <a href="mailto:interformci@yahoo.fr" className="hover:text-secondary">
-                  interformci@yahoo.fr
-                </a>
-              </li>
               {infos?.site_web && (
                 <li className="flex items-center gap-3">
                   <Globe className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />

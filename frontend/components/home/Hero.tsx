@@ -139,8 +139,8 @@ export default function Hero({ slides }: HeroProps) {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          <Button href="/services/formation-continue" variant="secondary">
-            Découvrir nos formations
+          <Button href="/services" variant="secondary">
+            Découvrir nos services
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>
           <Button href="/contact" variant="outline">

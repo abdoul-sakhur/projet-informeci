@@ -79,7 +79,7 @@ export default function InterimPage() {
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <SectionTitle
             eyebrow="Notre offre"
-            title="Une mise à disposition de personnel en toute confiance"
+            title="Mise à disposition de personnel"
             align="center"
           />
           <p className="mx-auto mt-6 max-w-2xl text-text/80">

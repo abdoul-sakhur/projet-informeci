@@ -17,7 +17,7 @@ import Button from '@/components/ui/Button';
 import { StaggerGrid, StaggerItem } from '@/components/ui/StaggerGrid';
 import Timeline from '@/components/about/Timeline';
 import { getCardGradient } from '@/lib/cardGradients';
-import { getInfosCabinet, getSalles, getStrapiImageURL } from '@/lib/strapi';
+import { getInfosCabinet, getStrapiImageURL } from '@/lib/strapi';
 
 export const metadata: Metadata = {
   title: 'À propos',
@@ -55,6 +55,7 @@ const VALEURS = [
 ];
 
 const RESEAU_EXPERTS_DOMAINES = [
+  'Projets et études',
   'Agriculture et développement rural',
   'Socio-économie',
   'Suivi-évaluation',
@@ -95,7 +96,7 @@ function buildDirectionTeaser(message: string): string {
 }
 
 export default async function AProposPage() {
-  const [infos, salles] = await Promise.all([getInfosCabinet(), getSalles()]);
+  const infos = await getInfosCabinet();
 
   return (
     <>
@@ -112,14 +113,61 @@ export default async function AProposPage() {
         </Button>
       </PageHeader>
 
+      {infos?.direction_message && (
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark py-20 sm:py-28">
+          <div
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-secondary/20 blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-[minmax(240px,320px)_1fr] lg:items-start">
+              <AnimatedSection direction="left">
+                <CmsImage
+                  src={getStrapiImageURL(infos.direction_photo, 'small')}
+                  alt={infos.direction_nom ?? 'Direction INTERFORMCI'}
+                  label="Portrait — Direction"
+                  ratio="3/4"
+                />
+                <div className="mt-4">
+                  <p className="font-serif text-lg font-bold text-white">{infos.direction_nom}</p>
+                  {infos.direction_titre && (
+                    <p className="text-sm text-white/70">{infos.direction_titre}</p>
+                  )}
+                </div>
+              </AnimatedSection>
+              <AnimatedSection direction="right" delay={0.1}>
+                <SectionTitle
+                  eyebrow="Le mot de la direction"
+                  title="Mot de la gérante"
+                  light
+                />
+                <div className="mt-6 space-y-4 text-sm leading-relaxed text-white/85">
+                  {buildDirectionTeaser(infos.direction_message)
+                    .split('\n\n')
+                    .map((paragraphe, index) => (
+                      <p key={index}>{paragraphe}</p>
+                    ))}
+                </div>
+                <div className="mt-6">
+                  <Button href="/mot-de-la-direction" variant="outline">
+                    Lire la suite
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </AnimatedSection>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <AnimatedSection direction="left">
             <SectionTitle eyebrow="Présentation" title="Notre histoire" />
             <p className="mt-6 leading-relaxed text-text/80">
-              Créé en 1998 et agréé en novembre 1999 par le FDFP, le Cabinet INTERFORMCI est une
-              structure qui contribue au développement des organisations et entreprises.
-              INTERFORMCI est agréé par le FIRCA depuis 2002.
+              Créé en 1998 et agréé en novembre 1999 par le FDFP, le FIRCA en 2002 et
+              l&apos;Agence Emploi Jeunes en 2026, le Cabinet INTERFORMCI est une structure qui
+              contribue au développement des organisations et entreprises.
             </p>
             <p className="mt-4 leading-relaxed text-text/80">
               Raison sociale : International Formation Côte d&apos;Ivoire (INTERFORMCI), SARL.
@@ -214,53 +262,6 @@ export default async function AProposPage() {
         </div>
       </section>
 
-      {infos?.direction_message && (
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark py-20 sm:py-28">
-          <div
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-secondary/20 blur-3xl"
-            aria-hidden="true"
-          />
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-[minmax(240px,320px)_1fr] lg:items-start">
-              <AnimatedSection direction="left">
-                <CmsImage
-                  src={getStrapiImageURL(infos.direction_photo, 'small')}
-                  alt={infos.direction_nom ?? 'Direction INTERFORMCI'}
-                  label="Portrait — Direction"
-                  ratio="3/4"
-                />
-                <div className="mt-4">
-                  <p className="font-serif text-lg font-bold text-white">{infos.direction_nom}</p>
-                  {infos.direction_titre && (
-                    <p className="text-sm text-white/70">{infos.direction_titre}</p>
-                  )}
-                </div>
-              </AnimatedSection>
-              <AnimatedSection direction="right" delay={0.1}>
-                <SectionTitle
-                  eyebrow="Le mot de la direction"
-                  title="Mot de la gérante"
-                  light
-                />
-                <div className="mt-6 space-y-4 text-sm leading-relaxed text-white/85">
-                  {buildDirectionTeaser(infos.direction_message)
-                    .split('\n\n')
-                    .map((paragraphe, index) => (
-                      <p key={index}>{paragraphe}</p>
-                    ))}
-                </div>
-                <div className="mt-6">
-                  <Button href="/mot-de-la-direction" variant="outline">
-                    Lire la suite
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Button>
-                </div>
-              </AnimatedSection>
-            </div>
-          </div>
-        </section>
-      )}
-
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionTitle eyebrow="Nos valeurs" title="Ce qui guide notre conduite" align="center" />
@@ -310,33 +311,6 @@ export default async function AProposPage() {
             Pour chaque intervention, nous constituons une équipe correspondant aux exigences
             techniques, au contexte et aux objectifs de la mission.
           </p>
-        </div>
-      </section>
-
-      <section className="bg-neutral py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionTitle
-            eyebrow="Infrastructures & équipements"
-            title="Des espaces adaptés à vos événements"
-            align="center"
-            description="2 salles polyvalentes de 10 à 30 places, équipées de vidéoprojecteurs et tableaux mobiles."
-          />
-          <div className="mt-14 grid gap-8 sm:grid-cols-2">
-            {salles.map((salle, index) => (
-              <AnimatedSection
-                key={salle.id}
-                direction={index % 2 === 0 ? 'left' : 'right'}
-                delay={index % 2 === 0 ? 0 : 0.1}
-              >
-                <CmsImage
-                  src={getStrapiImageURL(salle.photo, 'medium')}
-                  alt={salle.nom}
-                  label={`Photo ${salle.nom}`}
-                  ratio="4/3"
-                />
-              </AnimatedSection>
-            ))}
-          </div>
         </div>
       </section>
 

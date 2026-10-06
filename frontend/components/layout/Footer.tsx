@@ -39,7 +39,7 @@ export default async function Footer() {
               />
             </Link>
             <p className="mt-4 text-sm font-semibold text-white">
-              Études • Formation • Conseil • Services aux organisations
+              Études • Formations • Conseils • Services aux organisations
             </p>
             <p className="mt-2 text-sm leading-relaxed">
               Cabinet ivoirien créé en 1998 à Abidjan.

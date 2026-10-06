@@ -821,7 +821,7 @@ async function patchGeranteEtHoraires202610(strapi: Core.Strapi) {
 // idempotent que le reste du contenu.
 const DIRECTION_MESSAGE_202610 = `TRANSFORMER LES COMPÉTENCES EN PERFORMANCE
 
-Votre partenaire pour développer les talents, renforcer les organisations et faire grandir les projets
+Votre partenaire pour développer les talents, renforcer les organisations et faire grandir les projets.
 Depuis plusieurs années, notre cabinet accompagne les entreprises, institutions, organisations professionnelles, entrepreneurs et porteurs de projets dans leur développement à travers la formation, le conseil, l'accompagnement et la mise à disposition de compétences adaptées. Notre conviction est simple : la performance durable d'une organisation repose avant tout sur la qualité de ses femmes, de ses hommes et de ses compétences. C'est pourquoi nous concevons des solutions pratiques, adaptées aux réalités de nos clients et orientées vers des résultats concrets et durables.
 
 NOTRE SAVOIR-FAIRE
@@ -1237,6 +1237,33 @@ async function seedSalles(strapi: Core.Strapi) {
   strapi.log.info('[seed] Salles insérées.');
 }
 
+// Nouvelle grille tarifaire transmise par la cliente le 06/10/2026 : renomme
+// les deux salles (quel que soit leur nom actuel, qui a dérivé depuis le seed
+// initial) en "Petite Salle" / "Grande Salle" avec leur capacité réelle en
+// nombre de personnes, en se basant sur `ordre` (1 = petite, 2 = grande) qui
+// reste stable contrairement au nom.
+async function patchSallesNomsCapacites202610(strapi: Core.Strapi) {
+  const salles: any[] = await strapi.documents('api::salle.salle').findMany({
+    sort: 'ordre:asc',
+  });
+  if (salles.length < 2) return;
+
+  const cibles = [
+    { salle: salles[0], nom: 'Petite Salle', capacite: '10 personnes' },
+    { salle: salles[1], nom: 'Grande Salle', capacite: '30 personnes' },
+  ];
+
+  for (const { salle, nom, capacite } of cibles) {
+    if (salle.nom === nom && salle.capacite === capacite) continue;
+    await strapi.documents('api::salle.salle').update({
+      documentId: salle.documentId,
+      data: { nom, capacite },
+    });
+  }
+
+  strapi.log.info('[seed] Noms et capacités des salles mis à jour (Petite Salle / Grande Salle).');
+}
+
 async function seedExperts(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::expert.expert').count({});
   if (existing > 0) {
@@ -1253,6 +1280,7 @@ async function seedExperts(strapi: Core.Strapi) {
 export default async function seed({ strapi }: { strapi: Core.Strapi }) {
   await seedMainContent(strapi);
   await seedSalles(strapi);
+  await patchSallesNomsCapacites202610(strapi);
   await seedExperts(strapi);
   await patchExpertsSupplementaires(strapi);
   await patchExperienceStat(strapi);

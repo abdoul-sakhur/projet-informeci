@@ -24,8 +24,8 @@ const NAV_LINKS: NavLink[] = [
     href: '/a-propos',
     label: 'Cabinet',
     children: [
-      { href: '/a-propos', label: 'Présentation' },
       { href: '/mot-de-la-direction', label: 'Mot de la direction' },
+      { href: '/a-propos', label: 'Présentation' },
     ],
   },
   {

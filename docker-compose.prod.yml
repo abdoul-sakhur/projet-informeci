@@ -28,14 +28,18 @@
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
-  # Pin to a recent v3.x — an older patch (e.g. v3.2) bundles a Docker API
-  # client too old for current Docker Engine releases ("client version 1.24
-  # is too old, minimum supported is 1.40"), which makes the docker provider
-  # retry-loop forever and never discover backend/frontend. Confirmed against
-  # Docker Engine 29.8.2.
+  # The Docker provider's Go SDK negotiates API version 1.24 by default
+  # regardless of the Traefik image tag — too old for Docker Engine 29.x
+  # (minimum supported 1.40), so the provider retry-loops forever and never
+  # discovers backend/frontend ("client version 1.24 is too old"). Forcing
+  # DOCKER_API_VERSION makes it skip negotiation and use this version
+  # directly; keep it <= the host's `docker version --format
+  # '{{.Server.APIVersion}}'` (1.56 when this was written).
   traefik:
     image: traefik:v3.5
     restart: unless-stopped
+    environment:
+      - DOCKER_API_VERSION=1.44
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"

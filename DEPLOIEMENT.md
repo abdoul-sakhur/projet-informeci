@@ -25,8 +25,9 @@ Internet ──▶ Traefik (80/443, HTTPS auto) ──▶ frontend (Next.js, por
 - Traefik est le seul service exposé publiquement, déclaré comme un service de
   `docker-compose.prod.yml` au même titre que `frontend`/`backend` (ce VPS est dédié à ce
   projet, pas de contrainte de partage avec un autre reverse proxy). Il obtient et renouvelle
-  automatiquement les certificats TLS (Let's Encrypt) pour `FRONTEND_DOMAIN` (+ son sous-domaine
-  `www.`) et `API_DOMAIN`, et découvre `frontend`/`backend` via leurs labels Docker.
+  automatiquement les certificats TLS (Let's Encrypt) pour `interformci.com` (+ `www.`) et
+  `api.interformci.com`. Le routage vers `frontend`/`backend` est déclaré statiquement dans
+  `traefik/dynamic.yml` (file provider) plutôt que via le provider Docker — voir piège 11.9.
 - `frontend` et `backend` tournent dans des images de production immuables (pas de code source
   monté, pas de dépendances de dev) — voir `frontend/Dockerfile.prod` et `backend/Dockerfile.prod`.
 - Les données qui doivent survivre aux redéploiements (base SQLite, fichiers uploadés, état TLS de
@@ -486,6 +487,31 @@ manquait, l'onglet Content Manager de l'admin ne chargeait pas). La règle actue
 `docker-compose.prod.yml` liste tous les préfixes connus de Strapi v5 — si un plugin est ajouté
 plus tard et qu'une page de l'admin affiche cette même erreur JSON, vérifier d'abord quel chemin
 racine son appel réseau utilise (onglet Réseau du navigateur) et l'ajouter à la règle.
+
+### 11.9 Le provider Docker de Traefik est incompatible avec un Docker Engine récent (≥ 29.x)
+
+**Symptôme** : Traefik démarre, mais les routeurs `backend`/`frontend` ne sont jamais créés ;
+ses logs boucient sur `Failed to retrieve information of the docker client and server host:
+client version 1.24 is too old. Minimum supported API version is 1.40`.
+
+**Cause** : le SDK Docker interne au provider `docker` de Traefik sonde l'hôte avec l'API
+`1.24` sur cet appel précis, quel que soit le tag d'image Traefik (confirmé identique sur
+v3.2 **et** v3.5) — Docker Engine 29.x refuse toute requête sous `1.40`. La variable
+d'environnement standard `DOCKER_API_VERSION` (qui marche normalement avec le CLI/SDK Docker
+pour forcer une version) n'a aucun effet ici : Traefik construit son client à partir de sa
+propre config statique, pas de l'environnement ambiant.
+
+**Fix retenu** : abandonner le provider `docker` (découverte dynamique via le socket) au
+profit du provider `file` — routage déclaré statiquement dans `traefik/dynamic.yml`, qui
+pointe directement vers `http://backend:1337` / `http://frontend:3000` (noms de service sur
+le réseau Docker partagé). Pertinent ici car il n'y a que deux services fixes, qui ne
+changent jamais dynamiquement — pas besoin de découverte automatique. Traefik ne parle plus du
+tout à l'API Docker, le problème disparaît entièrement. Les labels `traefik.*` sur
+`backend`/`frontend` ont été retirés en conséquence (ignorés par le provider `file`).
+
+**Si ce piège réapparaît sur un futur projet** avec un besoin réel de découverte dynamique
+(plusieurs instances, scaling), chercher du côté d'un proxy de socket Docker versionné
+(`docker-socket-proxy`) plutôt que de réessayer `DOCKER_API_VERSION` sur Traefik directement.
 
 ---
 

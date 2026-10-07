@@ -12,13 +12,18 @@
 #
 # HTTPS / reverse proxy: this VPS is dedicated to this project (no sharing
 # constraint), so Traefik runs as its own service here and owns ports 80/443
-# directly — see DEPLOIEMENT.md section 8. Two hostnames:
-#   - FRONTEND_DOMAIN (bare domain + www) → frontend
-#   - API_DOMAIN (api. subdomain) → backend
-# This replaces the single-domain PathPrefix routing used on the old shared
-# test VPS (see DEPLOIEMENT.md pitfalls 11.6-11.8, now historical) — a proper
-# subdomain split doesn't have the "missing one Strapi route prefix silently
-# breaks the admin" fragility that approach had.
+# directly — see DEPLOIEMENT.md section 8. Two hostnames, routed via a static
+# file-provider config (traefik/dynamic.yml) rather than the Docker provider:
+#   - interformci.com / www.interformci.com → frontend
+#   - api.interformci.com → backend
+# (Tried the Docker provider first — its bundled client always probes with
+# API 1.24, which Docker Engine 29.x refuses outright ("client version 1.24
+# is too old, minimum supported 1.40"), and that holds regardless of Traefik
+# version or DOCKER_API_VERSION. The file provider sidesteps it entirely:
+# Traefik never talks to the Docker API, it just proxies to the containers'
+# names on the shared Docker network.)
+# This also replaces the single-domain PathPrefix routing used on the old
+# shared test VPS (see DEPLOIEMENT.md pitfalls 11.6-11.8, now historical).
 # Point both DNS A records at the VPS before starting this stack — Traefik's
 # Let's Encrypt HTTP challenge needs them to resolve.
 #
@@ -28,21 +33,12 @@
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
-  # The Docker provider's Go SDK negotiates API version 1.24 by default
-  # regardless of the Traefik image tag — too old for Docker Engine 29.x
-  # (minimum supported 1.40), so the provider retry-loops forever and never
-  # discovers backend/frontend ("client version 1.24 is too old"). Forcing
-  # DOCKER_API_VERSION makes it skip negotiation and use this version
-  # directly; keep it <= the host's `docker version --format
-  # '{{.Server.APIVersion}}'` (1.56 when this was written).
   traefik:
     image: traefik:v3.5
     restart: unless-stopped
-    environment:
-      - DOCKER_API_VERSION=1.44
     command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
@@ -55,7 +51,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
       - traefik_letsencrypt:/letsencrypt
     mem_limit: 128m
 
@@ -82,12 +78,6 @@ services:
     cpus: 1.0
     depends_on:
       - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.interformci-backend.rule=Host(`${API_DOMAIN}`)"
-      - "traefik.http.routers.interformci-backend.entrypoints=websecure"
-      - "traefik.http.routers.interformci-backend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.interformci-backend.loadbalancer.server.port=1337"
 
   frontend:
     build:
@@ -110,12 +100,6 @@ services:
     depends_on:
       - backend
       - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.interformci-frontend.rule=Host(`${FRONTEND_DOMAIN}`) || Host(`www.${FRONTEND_DOMAIN}`)"
-      - "traefik.http.routers.interformci-frontend.entrypoints=websecure"
-      - "traefik.http.routers.interformci-frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.interformci-frontend.loadbalancer.server.port=3000"
 
 volumes:
   backend_data:

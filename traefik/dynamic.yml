@@ -1,0 +1,33 @@
+# Static routing config for Traefik's file provider — see docker-compose.prod.yml.
+# Not templated: this is the final, fixed production domain (interformci.com),
+# not meant to be redeployed elsewhere, so hardcoding is simpler than wiring
+# env-var substitution into a mounted file (docker compose only substitutes
+# ${VAR} in the compose file itself, not in files it mounts).
+http:
+  routers:
+    interformci-backend:
+      rule: "Host(`api.interformci.com`)"
+      entryPoints:
+        - websecure
+      service: interformci-backend
+      tls:
+        certResolver: letsencrypt
+
+    interformci-frontend:
+      rule: "Host(`interformci.com`) || Host(`www.interformci.com`)"
+      entryPoints:
+        - websecure
+      service: interformci-frontend
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    interformci-backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:1337"
+
+    interformci-frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"

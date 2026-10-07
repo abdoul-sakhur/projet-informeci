@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 type Direction = 'up' | 'left' | 'right' | 'none';
@@ -28,6 +29,7 @@ export default function AnimatedSection({
   as = 'div',
 }: AnimatedSectionProps) {
   const shouldReduceMotion = useReducedMotion();
+  const pathname = usePathname();
   const Component = motion[as];
 
   const variants: Variants = {
@@ -41,7 +43,15 @@ export default function AnimatedSection({
   };
 
   return (
+    // Keyed by route: Next.js's client-side Router Cache can reuse an
+    // already-rendered instance of this component when a page is revisited
+    // (back button, or re-clicking a nav link), leaving it frozen at its
+    // "hidden" (opacity: 0) state with no fresh IntersectionObserver to
+    // trigger the reveal — permanently invisible for content the user never
+    // needs to scroll past. The key forces a clean remount (and a fresh
+    // observer, correctly timed after layout) on every route change.
     <Component
+      key={pathname}
       className={className}
       initial="hidden"
       whileInView="visible"

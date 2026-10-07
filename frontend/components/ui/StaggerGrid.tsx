@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 interface StaggerGridProps {
@@ -11,6 +12,7 @@ interface StaggerGridProps {
 
 export function StaggerGrid({ children, className = '', staggerDelay = 0.12 }: StaggerGridProps) {
   const shouldReduceMotion = useReducedMotion();
+  const pathname = usePathname();
 
   const container: Variants = {
     hidden: {},
@@ -20,7 +22,11 @@ export function StaggerGrid({ children, className = '', staggerDelay = 0.12 }: S
   };
 
   return (
+    // See AnimatedSection.tsx — keyed by route so Next.js's Router Cache
+    // can't leave this stuck on a stale, already-fired-or-never-fired
+    // IntersectionObserver when the page is revisited via client-side nav.
     <motion.div
+      key={pathname}
       className={className}
       initial="hidden"
       whileInView="visible"

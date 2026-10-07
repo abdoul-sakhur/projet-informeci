@@ -18,16 +18,19 @@ symptômes sur un futur VPS ou un futur projet Strapi+Docker.
 ## 0. Vue d'ensemble
 
 ```
-Internet ──▶ Caddy (80/443, HTTPS auto) ──▶ frontend (Next.js, port interne 3000)
-                                        └──▶ backend  (Strapi,  port interne 1337)
+Internet ──▶ Traefik (80/443, HTTPS auto) ──▶ frontend (Next.js, port interne 3000)
+                                          └──▶ backend  (Strapi,  port interne 1337)
 ```
 
-- Caddy est le seul service exposé publiquement. Il obtient et renouvelle automatiquement les
-  certificats TLS (Let's Encrypt) pour les deux domaines.
+- Traefik est le seul service exposé publiquement, déclaré comme un service de
+  `docker-compose.prod.yml` au même titre que `frontend`/`backend` (ce VPS est dédié à ce
+  projet, pas de contrainte de partage avec un autre reverse proxy). Il obtient et renouvelle
+  automatiquement les certificats TLS (Let's Encrypt) pour `FRONTEND_DOMAIN` (+ son sous-domaine
+  `www.`) et `API_DOMAIN`, et découvre `frontend`/`backend` via leurs labels Docker.
 - `frontend` et `backend` tournent dans des images de production immuables (pas de code source
   monté, pas de dépendances de dev) — voir `frontend/Dockerfile.prod` et `backend/Dockerfile.prod`.
 - Les données qui doivent survivre aux redéploiements (base SQLite, fichiers uploadés, état TLS de
-  Caddy) sont dans des volumes Docker nommés.
+  Traefik) sont dans des volumes Docker nommés.
 
 ---
 
@@ -37,21 +40,24 @@ Internet ──▶ Caddy (80/443, HTTPS auto) ──▶ frontend (Next.js, port 
   installés (`docker compose version` doit fonctionner). Les images Hostinger/DigitalOcean "Docker"
   les ont déjà — vérifier avant de perdre du temps à les réinstaller.
 - Accès SSH par clé (pas par mot de passe partagé dans un chat — voir section 2).
-- Deux noms de domaine (ou sous-domaines), ex. `www.interformci.com` et `api.interformci.com`.
-- Deux enregistrements DNS de type A (ou AAAA en IPv6) pointant **chacun** vers l'IP publique du
-  VPS. Vérifie leur propagation avant de démarrer Caddy :
+- Le domaine principal et son sous-domaine API, ex. `interformci.com` et `api.interformci.com`
+  (`www.interformci.com` est servi automatiquement par le même routeur que le domaine nu — voir
+  docker-compose.prod.yml).
+- Trois enregistrements DNS de type A (ou AAAA en IPv6) pointant **chacun** vers l'IP publique du
+  VPS. Vérifie leur propagation avant de démarrer Traefik :
 
   ```bash
+  dig +short interformci.com
   dig +short www.interformci.com
   dig +short api.interformci.com
   ```
 
-  Les deux doivent renvoyer l'IP du VPS. Si ce n'est pas le cas, Caddy ne pourra pas obtenir de
+  Les trois doivent renvoyer l'IP du VPS. Si ce n'est pas le cas, Traefik ne pourra pas obtenir de
   certificat HTTPS. **Ce n'est pas bloquant pour le reste** : tout le reste du déploiement (build,
   démarrage backend/frontend, migration des données) ne dépend pas du DNS — seul le démarrage de
-  Caddy avec HTTPS en dépend. Voir section 7 pour tester avant que le DNS soit prêt.
+  Traefik avec HTTPS en dépend. Voir section 7 pour tester avant que le DNS soit prêt.
 
-- Ports 80 et 443 libres pour Caddy. Le pare-feu (`ufw`) est souvent **inactif par défaut** sur un
+- Ports 80 et 443 libres pour Traefik. Le pare-feu (`ufw`) est souvent **inactif par défaut** sur un
   VPS fraîchement livré (vérifier avec `ufw status`) — l'activer explicitement avant de considérer
   le serveur prêt :
 
@@ -103,8 +109,9 @@ cp .env.prod.example .env.prod
 ```
 
 ```
-DOMAIN=www.interformci.com
+FRONTEND_DOMAIN=interformci.com
 API_DOMAIN=api.interformci.com
+ACME_EMAIL=cabinterformci@gmail.com
 ```
 
 ### 4.2 Secrets Strapi (`backend/.env.production`)
@@ -197,9 +204,10 @@ Cette commande :
 1. Construit l'image backend (`backend/Dockerfile.prod`) et l'image frontend
    (`frontend/Dockerfile.prod`, avec `NEXT_PUBLIC_STRAPI_URL` injecté **au build** à partir de
    `API_DOMAIN` — voir piège 11.4, cette valeur ne peut plus changer sans rebuild).
-2. Démarre `backend`, `frontend` et `caddy` en arrière-plan (`-d`).
-3. Caddy demande automatiquement les certificats Let's Encrypt pour `DOMAIN` et `API_DOMAIN` au
-   premier démarrage (peut prendre 30–60 secondes) — nécessite le DNS déjà propagé (section 1).
+2. Démarre `traefik`, `backend` et `frontend` en arrière-plan (`-d`).
+3. Traefik demande automatiquement les certificats Let's Encrypt pour `FRONTEND_DOMAIN`
+   (+ `www.`) et `API_DOMAIN` au premier démarrage (peut prendre 30–60 secondes) — nécessite le
+   DNS déjà propagé (section 1) et `ACME_EMAIL` renseigné dans `.env.prod`.
 
 Le premier build de `backend` peut prendre 8–10 minutes (installation des dépendances Strapi dans
 un conteneur neuf). **Si la commande est lancée via une session SSH qui peut se couper (agent,
@@ -223,7 +231,7 @@ Pour visualiser le site sur l'IP brute en attendant :
 
 ```bash
 docker compose -f docker-compose.prod.yml -f docker-compose.test-ports.yml --env-file .env.prod \
-  up -d backend frontend    # sans caddy — pas besoin de DNS pour ça
+  up -d backend frontend    # sans traefik — pas besoin de DNS pour ça
 ```
 
 avec un fichier `docker-compose.test-ports.yml` (à créer, à ne **pas** committer) :
@@ -261,36 +269,35 @@ section 6 le fait automatiquement au prochain `--build` avec `.env.prod` correct
 
 ## 8. Vérifier le déploiement définitif (HTTPS via Traefik + domaine)
 
-**Important — ce VPS est partagé avec d'autres projets** et fait déjà tourner une seule
-instance Traefik commune (`/docker/traefik-rmu2`, `network_mode: host`, ports 80/443) qui
-découvre automatiquement les conteneurs via des labels Docker. `docker-compose.prod.yml` ne
-lance donc **pas** son propre reverse proxy — `backend` et `frontend` portent directement les
-labels `traefik.*` qui disent à cette instance partagée de les router. Voir le piège 11.6
-plus bas si un déploiement tente de relancer un reverse proxy dédié.
+Ce VPS est dédié à ce projet — `traefik` est un service de `docker-compose.prod.yml` comme les
+autres (voir section 0), pas une instance partagée externe. `backend` et `frontend` portent des
+labels `traefik.*` qui lui disent comment les router.
 
 ```bash
 docker compose -f docker-compose.prod.yml ps
 ```
 
-Les deux services doivent être `Up` (et `healthy` dès que les healthchecks passent, après ~30s).
+Les trois services doivent être `Up` (et `healthy` dès que les healthchecks passent, après ~30s).
 
 ```bash
-docker logs -f traefik-rmu2-traefik-1
+docker compose -f docker-compose.prod.yml logs -f traefik
 ```
 
 Vérifier l'absence d'erreur de certificat TLS (ACME) dans les logs de Traefik.
 
 Puis, depuis un navigateur :
-- `https://<DOMAIN>` → le site doit s'afficher, avec un cadenas HTTPS valide.
-- `https://<DOMAIN>/admin` → l'écran de création du premier compte administrateur Strapi doit
-  s'afficher (**à faire immédiatement**, avant qu'un tiers ne le fasse à ta place — Strapi n'a
-  pas d'admin tant que ce compte n'existe pas).
+- `https://<FRONTEND_DOMAIN>` → le site doit s'afficher, avec un cadenas HTTPS valide.
+- `https://<API_DOMAIN>/admin` → l'admin Strapi doit s'afficher. Si les données ont été migrées
+  depuis un autre environnement (section 5), le compte administrateur existe déjà — se connecter
+  avec les identifiants existants plutôt que d'en recréer un.
 
-### 8.1 Créer le compte administrateur Strapi
+### 8.1 Créer le compte administrateur Strapi (premier déploiement à vide uniquement)
 
-Ouvrir `https://<DOMAIN>/admin` et suivre le formulaire de création de compte (email + mot de
-passe forts). C'est ce compte qui sert ensuite à gérer tout le contenu du site (textes, photos,
-partenaires, messages de contact, etc.) depuis l'admin.
+Si la base a été migrée (section 5), un compte admin existe déjà — ignorer cette étape. Sur un
+déploiement vraiment neuf, ouvrir `https://<API_DOMAIN>/admin` et suivre le formulaire de création
+de compte (email + mot de passe forts) **immédiatement**, avant qu'un tiers ne le fasse à ta
+place — Strapi n'a pas d'admin tant que ce compte n'existe pas. C'est ce compte qui sert ensuite à
+gérer tout le contenu du site (textes, photos, partenaires, messages de contact, etc.).
 
 ---
 
@@ -302,7 +309,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
 Docker ne reconstruit que ce qui a changé. Les volumes (`backend_data`, `backend_uploads`,
-`caddy_data`, `caddy_config`) ne sont jamais touchés par cette commande — le contenu Strapi et les
+`traefik_letsencrypt`) ne sont jamais touchés par cette commande — le contenu Strapi et les
 certificats TLS sont conservés.
 
 ---
@@ -419,7 +426,12 @@ besoin de générer une clé SSH dédiée séparée en plus de celle déjà auto
 le VPS — les deux partagent le même `~/.ssh`. Clarifier ce point en tout début de déploiement évite
 un aller-retour ("quelle clé ajouter où").
 
-### 11.6 Ne jamais lancer un second reverse proxy sur ce VPS — il est déjà partagé
+### 11.6 [Historique — ne s'appliquait qu'au VPS de test partagé] Ne jamais lancer un second reverse proxy sur ce VPS — il est déjà partagé
+
+> Cette section décrit une contrainte du VPS de test (`srv1896005.hstgr.cloud`, partagé avec
+> `jaures`), abandonné depuis la migration vers le VPS de production dédié (section 0). Gardée
+> pour mémoire : utile si ce projet (ou un autre) se retrouve un jour de nouveau sur un VPS
+> mutualisé.
 
 Ce VPS héberge plusieurs projets (`jaures`, `qa-dashboard`, etc.) et une **seule** instance
 Traefik (`/docker/traefik-rmu2`) possède déjà les ports 80/443 (`network_mode: host`). Un
@@ -439,7 +451,11 @@ lien IP:8080/8081 déjà en place. Deux leçons :
    des *autres* services depuis le fichier de base seul et peut leur retirer des ports qu'un
    override leur donnait.
 
-### 11.7 Le hostname `srv1896005.hstgr.cloud` nu est déjà pris par un autre projet
+### 11.7 [Historique] Le hostname `srv1896005.hstgr.cloud` nu est déjà pris par un autre projet
+
+> Ne s'applique plus : le projet utilise désormais le vrai domaine `interformci.com` sur son
+> propre VPS (section 0). Gardée pour mémoire au cas où un hostname Hostinger par défaut serait
+> réutilisé un jour avant l'achat d'un domaine.
 
 En l'absence du vrai nom de domaine (pas encore acheté), on utilise le hostname par défaut
 fourni par Hostinger. Mais `jaures` (autre projet sur ce même VPS) l'utilise déjà tel quel comme
@@ -451,7 +467,12 @@ Hostinger, donc un sous-domaine dédié (`interformci.srv1896005.hstgr.cloud`) r
 évite le conflit — c'est la valeur à utiliser dans `.env.prod` tant que le vrai domaine n'est pas
 branché.
 
-### 11.8 Le routage Traefik par chemin doit couvrir TOUS les préfixes Strapi, pas seulement `/admin` et `/api`
+### 11.8 [Historique — résolu par le passage au sous-domaine `api.`] Le routage Traefik par chemin doit couvrir TOUS les préfixes Strapi, pas seulement `/admin` et `/api`
+
+> Ne s'applique plus : `docker-compose.prod.yml` route désormais `API_DOMAIN` entièrement vers
+> `backend` (un `Host()` simple, pas de `PathPrefix`), donc aucun préfixe Strapi ne peut plus
+> tomber dans le routeur frontend par oubli. Gardée pour mémoire : si ce projet revient un jour à
+> un seul domaine partagé entre front et back, ce piège refera surface.
 
 Avec un seul domaine (pas de sous-domaine `api.` séparé), le routeur backend route par
 `PathPrefix`. Piège : le SPA admin de Strapi appelle des chemins racine qui ne sont **ni** sous
@@ -483,7 +504,7 @@ racine son appel réseau utilise (onglet Réseau du navigateur) et l'ajouter à 
 
 ## 13. Dépannage rapide
 
-- **Caddy n'obtient pas de certificat HTTPS** → vérifier que les DNS pointent bien vers le VPS
+- **Traefik n'obtient pas de certificat HTTPS** → vérifier que les DNS pointent bien vers le VPS
   (`dig +short <domaine>`) et que les ports 80/443 sont ouverts et libres.
 - **Le frontend affiche des erreurs de connexion à l'API, ou les images ne s'affichent pas** →
   vérifier que `API_DOMAIN` dans `.env.prod` correspond bien au domaine réellement utilisé par le

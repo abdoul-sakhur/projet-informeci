@@ -5,37 +5,51 @@
 #     final image) instead of running `next dev` / `strapi develop` against a
 #     bind-mounted source tree.
 #   - No source bind mounts — the image is immutable; only data that must
-#     persist across deploys (the SQLite file, uploaded media) is a named
-#     volume.
+#     persist across deploys (the SQLite file, uploaded media, Traefik's
+#     Let's Encrypt state) is a named volume.
 #   - restart policies + healthchecks + resource limits, since this is meant
 #     to stay up unattended.
 #
-# HTTPS / reverse proxy: this VPS is shared with other projects and already
-# runs a single Traefik instance (host network mode, /docker/traefik-rmu2)
-# that owns ports 80/443 for the whole box and auto-discovers containers via
-# Docker labels (providers.docker, exposedbydefault=false) — see
-# DEPLOIEMENT.md. Do NOT add another reverse proxy container here (an
-# earlier attempt at a dedicated Caddy container failed: "address already in
-# use" on :80). Instead, the services below carry Traefik labels directly.
-# A single DOMAIN serves both: the backend router matches Strapi's own URL
-# prefixes (higher priority) and the frontend router catches everything else
-# on the same Host(). This must list every top-level prefix Strapi's admin
-# SPA calls — not just /admin and /api: the Content Manager, Content-Type
-# Builder, Upload and Users & Permissions plugins all call bare top-level
-# paths (e.g. /content-manager/..., not /admin/content-manager/...). Missing
-# one here doesn't 404 — it silently falls through to the frontend's
-# catch-all router, which returns its own HTML, breaking that part of the
-# admin with a "Unexpected token <, is not valid JSON" error (confirmed
-# 04/10/2026: /content-manager was missing, broke the Content Manager tab).
-# Point DOMAIN's DNS A/AAAA record at the VPS before starting this stack —
-# Traefik's Let's Encrypt HTTP challenge needs it to resolve.
+# HTTPS / reverse proxy: this VPS is dedicated to this project (no sharing
+# constraint), so Traefik runs as its own service here and owns ports 80/443
+# directly — see DEPLOIEMENT.md section 8. Two hostnames:
+#   - FRONTEND_DOMAIN (bare domain + www) → frontend
+#   - API_DOMAIN (api. subdomain) → backend
+# This replaces the single-domain PathPrefix routing used on the old shared
+# test VPS (see DEPLOIEMENT.md pitfalls 11.6-11.8, now historical) — a proper
+# subdomain split doesn't have the "missing one Strapi route prefix silently
+# breaks the admin" fragility that approach had.
+# Point both DNS A records at the VPS before starting this stack — Traefik's
+# Let's Encrypt HTTP challenge needs them to resolve.
 #
 # Usage:
 #   cp backend/.env.production.example backend/.env.production   # fill in real secrets
-#   cp .env.prod.example .env.prod                               # fill in DOMAIN
+#   cp .env.prod.example .env.prod                               # fill in domains
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
+  traefik:
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    mem_limit: 128m
+
   backend:
     build:
       context: ./backend
@@ -57,12 +71,13 @@ services:
       start_period: 30s
     mem_limit: 768m
     cpus: 1.0
+    depends_on:
+      - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.interformci-backend.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/uploads`) || PathPrefix(`/content-manager`) || PathPrefix(`/content-type-builder`) || PathPrefix(`/upload`) || PathPrefix(`/users-permissions`) || PathPrefix(`/i18n`) || PathPrefix(`/email`))"
+      - "traefik.http.routers.interformci-backend.rule=Host(`${API_DOMAIN}`)"
       - "traefik.http.routers.interformci-backend.entrypoints=websecure"
       - "traefik.http.routers.interformci-backend.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.interformci-backend.priority=10"
       - "traefik.http.services.interformci-backend.loadbalancer.server.port=1337"
 
   frontend:
@@ -70,11 +85,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        NEXT_PUBLIC_STRAPI_URL: https://${DOMAIN}
+        NEXT_PUBLIC_STRAPI_URL: https://${API_DOMAIN}
     restart: unless-stopped
     environment:
       - STRAPI_INTERNAL_URL=http://backend:1337
-      - NEXT_PUBLIC_STRAPI_URL=https://${DOMAIN}
+      - NEXT_PUBLIC_STRAPI_URL=https://${API_DOMAIN}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
@@ -85,14 +100,15 @@ services:
     cpus: 1.0
     depends_on:
       - backend
+      - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.interformci-frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.interformci-frontend.rule=Host(`${FRONTEND_DOMAIN}`) || Host(`www.${FRONTEND_DOMAIN}`)"
       - "traefik.http.routers.interformci-frontend.entrypoints=websecure"
       - "traefik.http.routers.interformci-frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.interformci-frontend.priority=1"
       - "traefik.http.services.interformci-frontend.loadbalancer.server.port=3000"
 
 volumes:
   backend_data:
   backend_uploads:
+  traefik_letsencrypt:
